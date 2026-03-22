@@ -614,11 +614,15 @@ footer a:hover { text-decoration: underline; }
     </div>
   </div>
 
-  <!-- Finish Song Button -->
-  <button class="finish-btn" id="finish-btn">
-    <span class="btn-text">&#9889; Finish This Song</span>
-    <span class="btn-generating">Generating intro &amp; outro&hellip;</span>
-  </button>
+  <!-- Finish Song Row -->
+  <div style="display:flex;gap:12px;align-items:stretch;margin-bottom:24px;" id="finish-row">
+    <input class="vibe-input" id="vibe-input" type="text" style="flex:1;margin:0;"
+      placeholder='Describe the vibe: "dreamy indie", "upbeat funk", "dark electronic ballad"'>
+    <button class="finish-btn" id="finish-btn" style="margin:0;width:auto;white-space:nowrap;padding:14px 28px;">
+      <span class="btn-text">&#9889; Finish This Song</span>
+      <span class="btn-generating">Generating&hellip;</span>
+    </button>
+  </div>
 
   <div class="error-msg" id="gen-error"></div>
 
@@ -634,12 +638,6 @@ footer a:hover { text-decoration: underline; }
       <input type="file" id="file-input" multiple accept="audio/*,.mid,.midi">
       <div class="add-zone-text"><span class="bolt">&#9889;</span>Drop more tracks here</div>
       <div class="add-zone-hint">MP3, WAV, M4A, MIDI, AIFF, FLAC</div>
-    </div>
-
-    <div class="vibe-section">
-      <div class="vibe-label"><span class="bolt">&#9889;</span> Describe the vibe (optional)</div>
-      <input class="vibe-input" id="vibe-input" type="text"
-        placeholder='e.g. "dreamy indie", "upbeat funk", "dark electronic ballad"'>
     </div>
   </div>
 
