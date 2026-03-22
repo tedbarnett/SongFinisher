@@ -665,17 +665,8 @@ footer a:hover { text-decoration: underline; }
 
     <!-- Transport -->
     <div class="transport" id="transport">
-      <button class="transport-btn" id="t-play-all" title="Play All">
-        <span class="transport-btn-icon">&#9654;</span> Play All
-      </button>
-      <button class="transport-btn" id="t-play-intro" title="Play Intro" disabled>
-        <span class="transport-btn-icon">&#9654;</span> Intro
-      </button>
-      <button class="transport-btn" id="t-play-song" title="Play Song">
-        <span class="transport-btn-icon">&#9654;</span> Song
-      </button>
-      <button class="transport-btn" id="t-play-outro" title="Play Outro" disabled>
-        <span class="transport-btn-icon">&#9654;</span> Outro
+      <button class="transport-btn" id="t-play" title="Play / Pause">
+        <span class="transport-btn-icon" id="t-play-icon">&#9654;</span>
       </button>
       <span class="transport-time" id="transport-time">0:00</span>
     </div>
@@ -764,11 +755,9 @@ footer a:hover { text-decoration: underline; }
   var zoneOutro = document.getElementById("zone-outro");
   var playhead = document.getElementById("playhead");
 
-  // Transport buttons
-  var tPlayAll = document.getElementById("t-play-all");
-  var tPlayIntro = document.getElementById("t-play-intro");
-  var tPlaySong = document.getElementById("t-play-song");
-  var tPlayOutro = document.getElementById("t-play-outro");
+  // Transport
+  var tPlay = document.getElementById("t-play");
+  var tPlayIcon = document.getElementById("t-play-icon");
   var transportTime = document.getElementById("transport-time");
 
   // Download buttons
@@ -936,13 +925,8 @@ footer a:hover { text-decoration: underline; }
       transportRaf = null;
     }
     transportMode = null;
-    playhead.classList.remove("active");
-    // Remove active from all transport buttons
-    var btns = document.querySelectorAll(".transport-btn");
-    for (var i = 0; i < btns.length; i++) {
-      btns[i].classList.remove("active");
-    }
-    transportTime.textContent = "0:00";
+    tPlayIcon.innerHTML = "&#9654;";
+    tPlay.classList.remove("active");
   }
 
   function stopAllPlayback() {
@@ -1188,11 +1172,8 @@ footer a:hover { text-decoration: underline; }
     // Draw song waveform
     decodeSongAudio();
 
-    // Update transport button states
-    tPlayIntro.disabled = !introBuffer;
-    tPlayOutro.disabled = !outroBuffer;
-    tPlayAll.disabled = false;
-    tPlaySong.disabled = false;
+    // Reset playhead to start of earliest available section
+    resetPlayheadToStart();
 
     // Update download buttons
     updateDownloads();
@@ -1228,73 +1209,126 @@ footer a:hover { text-decoration: underline; }
     }, 150);
   });
 
-  // --- Transport Controls ---
-  function playTransport(mode) {
-    stopAllPlayback();
-
-    // Determine what to play
+  // --- Transport: single play/pause from playhead position ---
+  // Build ordered list of available audio sources
+  function getSourceList() {
     var sources = [];
-    if (mode === "all") {
-      if (introUrl) sources.push({ type: "url", src: introUrl, label: "intro" });
+    if (introUrl) sources.push({ type: "url", src: introUrl, label: "intro" });
+    if (selectedIdx >= 0 && selectedIdx < library.length) {
       sources.push({ type: "file", src: library[selectedIdx].file, label: "song" });
-      if (outroUrl) sources.push({ type: "url", src: outroUrl, label: "outro" });
-    } else if (mode === "intro" && introUrl) {
-      sources.push({ type: "url", src: introUrl, label: "intro" });
-    } else if (mode === "song") {
-      sources.push({ type: "file", src: library[selectedIdx].file, label: "song" });
-    } else if (mode === "outro" && outroUrl) {
-      sources.push({ type: "url", src: outroUrl, label: "outro" });
     }
+    if (outroUrl) sources.push({ type: "url", src: outroUrl, label: "outro" });
+    return sources;
+  }
 
+  // Track which source index + seek position the playhead represents
+  var playheadSourceIdx = 0;
+  var playheadSeekFraction = 0;
+  var currentSourceIdx = 0;
+
+  function resetPlayheadToStart() {
+    var sources = getSourceList();
+    playheadSourceIdx = 0;
+    playheadSeekFraction = 0;
+    if (sources.length > 0) {
+      var zone = document.getElementById("zone-" + sources[0].label);
+      if (zone) {
+        playhead.style.left = zone.offsetLeft + "px";
+        playhead.classList.add("active");
+      }
+    }
+    transportTime.textContent = "0:00";
+    tPlayIcon.innerHTML = "&#9654;";
+    tPlay.classList.remove("active");
+  }
+
+  function playFromPlayhead() {
+    var sources = getSourceList();
     if (sources.length === 0) return;
 
-    transportMode = mode;
-    var btnMap = { all: tPlayAll, intro: tPlayIntro, song: tPlaySong, outro: tPlayOutro };
-    if (btnMap[mode]) btnMap[mode].classList.add("active");
+    transportMode = "unified";
+    tPlay.classList.add("active");
+    tPlayIcon.innerHTML = "&#9646;&#9646;";
+    currentSourceIdx = playheadSourceIdx;
 
-    // Play sources sequentially
-    var currentSourceIdx = 0;
-
-    function playNext() {
-      if (currentSourceIdx >= sources.length) {
+    function playSource(idx, seekFrac) {
+      if (idx >= sources.length) {
         stopTransportPlayback();
+        resetPlayheadToStart();
         return;
       }
-      var src = sources[currentSourceIdx];
+      var src = sources[idx];
       var audio;
       if (src.type === "url") {
         audio = new Audio(src.src);
       } else {
         var blobUrl = URL.createObjectURL(src.src);
         audio = new Audio(blobUrl);
-        audio.addEventListener("ended", function () {
-          URL.revokeObjectURL(blobUrl);
-        });
+        audio.addEventListener("ended", function () { URL.revokeObjectURL(blobUrl); });
       }
       transportAudio = audio;
+      currentSourceIdx = idx;
 
       audio.addEventListener("ended", function () {
-        currentSourceIdx++;
-        playNext();
+        currentSourceIdx = idx + 1;
+        playheadSourceIdx = idx + 1;
+        playheadSeekFraction = 0;
+        playSource(idx + 1, 0);
       });
 
       audio.addEventListener("timeupdate", function () {
         transportTime.textContent = formatDuration(audio.currentTime);
         updatePlayhead(src.label, audio.currentTime, audio.duration);
+        // Keep playhead state in sync for pause/resume
+        playheadSourceIdx = idx;
+        if (audio.duration > 0) playheadSeekFraction = audio.currentTime / audio.duration;
       });
+
+      if (seekFrac > 0) {
+        audio.addEventListener("loadedmetadata", function () {
+          audio.currentTime = seekFrac * audio.duration;
+        });
+      }
 
       audio.play();
     }
 
-    playNext();
+    playSource(currentSourceIdx, playheadSeekFraction);
   }
+
+  function pauseTransport() {
+    if (transportAudio && !transportAudio.paused) {
+      transportAudio.pause();
+      tPlayIcon.innerHTML = "&#9654;";
+      tPlay.classList.remove("active");
+    }
+  }
+
+  function resumeTransport() {
+    if (transportAudio && transportAudio.paused) {
+      transportAudio.play();
+      tPlayIcon.innerHTML = "&#9646;&#9646;";
+      tPlay.classList.add("active");
+    }
+  }
+
+  tPlay.addEventListener("click", function () {
+    if (transportAudio && !transportAudio.paused) {
+      // Currently playing — pause
+      pauseTransport();
+    } else if (transportAudio && transportAudio.paused) {
+      // Paused — resume
+      resumeTransport();
+    } else {
+      // Not playing — start from playhead
+      playFromPlayhead();
+    }
+  });
 
   function updatePlayhead(label, currentTime, duration) {
     if (!duration || duration === 0) return;
-    var timeline = document.getElementById("waveform-timeline");
-    var zone = document.getElementById("zone-" + (label === "song" ? "song" : label));
+    var zone = document.getElementById("zone-" + label);
     if (!zone) return;
-
     var fraction = currentTime / duration;
     var xInZone = zone.offsetLeft + (fraction * zone.offsetWidth);
     playhead.style.left = xInZone + "px";
@@ -1309,51 +1343,33 @@ footer a:hover { text-decoration: underline; }
     var rect = timeline.getBoundingClientRect();
     var x = e.clientX - rect.left;
 
-    // Determine which zone was clicked
+    var sources = getSourceList();
     var zoneSongEl = document.getElementById("zone-song");
-    var introLeft = zoneIntro.offsetLeft;
-    var introRight = introLeft + zoneIntro.offsetWidth;
-    var songLeft = zoneSongEl.offsetLeft;
-    var songRight = songLeft + zoneSongEl.offsetWidth;
-    var outroLeft = zoneOutro.offsetLeft;
-    var outroRight = outroLeft + zoneOutro.offsetWidth;
 
-    var targetMode = null;
-    var fraction = 0;
+    // Find which zone and source index was clicked
+    for (var si = 0; si < sources.length; si++) {
+      var src = sources[si];
+      var zone = document.getElementById("zone-" + src.label);
+      if (!zone) continue;
+      var zLeft = zone.offsetLeft;
+      var zRight = zLeft + zone.offsetWidth;
+      if (x >= zLeft && x <= zRight) {
+        var fraction = Math.max(0, Math.min(1, (x - zLeft) / zone.offsetWidth));
+        playheadSourceIdx = si;
+        playheadSeekFraction = fraction;
 
-    if (x >= introLeft && x < introRight && introBuffer) {
-      targetMode = "intro";
-      fraction = (x - introLeft) / zoneIntro.offsetWidth;
-    } else if (x >= songLeft && x < songRight && songBuffer) {
-      targetMode = "song";
-      fraction = (x - songLeft) / zoneSongEl.offsetWidth;
-    } else if (x >= outroLeft && x <= outroRight && outroBuffer) {
-      targetMode = "outro";
-      fraction = (x - outroLeft) / zoneOutro.offsetWidth;
-    }
+        // Update playhead visually
+        playhead.style.left = x + "px";
+        playhead.classList.add("active");
 
-    if (!targetMode) return;
-    fraction = Math.max(0, Math.min(1, fraction));
-
-    // If already playing the same zone, just seek
-    if (transportAudio && transportMode === targetMode && !transportAudio.paused) {
-      transportAudio.currentTime = fraction * transportAudio.duration;
-    } else {
-      // Start playback at this position
-      stopAllPlayback();
-      playTransport(targetMode);
-      // Wait for audio to load then seek
-      if (transportAudio) {
-        var seekFraction = fraction;
-        transportAudio.addEventListener("loadedmetadata", function () {
-          transportAudio.currentTime = seekFraction * transportAudio.duration;
-        });
+        // If playing, seek in current or switch source
+        if (transportAudio && !transportAudio.paused) {
+          stopTransportPlayback();
+          playFromPlayhead();
+        }
+        return;
       }
     }
-
-    // Update playhead position immediately
-    playhead.style.left = x + "px";
-    playhead.classList.add("active");
   }
 
   var timelineEl = document.getElementById("waveform-timeline");
@@ -1365,16 +1381,13 @@ footer a:hover { text-decoration: underline; }
   });
 
   document.addEventListener("mousemove", function (e) {
-    if (isScrubbing) {
-      scrubToPosition(e);
-    }
+    if (isScrubbing) scrubToPosition(e);
   });
 
   document.addEventListener("mouseup", function () {
     isScrubbing = false;
   });
 
-  // Touch support for mobile
   timelineEl.addEventListener("touchstart", function (e) {
     isScrubbing = true;
     scrubToPosition(e.touches[0]);
@@ -1382,46 +1395,11 @@ footer a:hover { text-decoration: underline; }
   });
 
   timelineEl.addEventListener("touchmove", function (e) {
-    if (isScrubbing) {
-      scrubToPosition(e.touches[0]);
-      e.preventDefault();
-    }
+    if (isScrubbing) { scrubToPosition(e.touches[0]); e.preventDefault(); }
   });
 
   timelineEl.addEventListener("touchend", function () {
     isScrubbing = false;
-  });
-
-  tPlayAll.addEventListener("click", function () {
-    if (transportMode === "all" && transportAudio && !transportAudio.paused) {
-      stopTransportPlayback();
-      return;
-    }
-    playTransport("all");
-  });
-
-  tPlayIntro.addEventListener("click", function () {
-    if (transportMode === "intro" && transportAudio && !transportAudio.paused) {
-      stopTransportPlayback();
-      return;
-    }
-    playTransport("intro");
-  });
-
-  tPlaySong.addEventListener("click", function () {
-    if (transportMode === "song" && transportAudio && !transportAudio.paused) {
-      stopTransportPlayback();
-      return;
-    }
-    playTransport("song");
-  });
-
-  tPlayOutro.addEventListener("click", function () {
-    if (transportMode === "outro" && transportAudio && !transportAudio.paused) {
-      stopTransportPlayback();
-      return;
-    }
-    playTransport("outro");
   });
 
   // --- Downloads ---
@@ -1788,7 +1766,6 @@ footer a:hover { text-decoration: underline; }
         introBuffer = buf;
         zoneIntroEmpty.classList.add("hidden");
         drawWaveform(canvasIntro, introBuffer, "#ff2d78");
-        tPlayIntro.disabled = false;
         pending--;
         if (pending === 0) finalizegen();
       });
@@ -1801,7 +1778,6 @@ footer a:hover { text-decoration: underline; }
         outroBuffer = buf;
         zoneOutroEmpty.classList.add("hidden");
         drawWaveform(canvasOutro, outroBuffer, "#4f8cff");
-        tPlayOutro.disabled = false;
         pending--;
         if (pending === 0) finalizegen();
       });
