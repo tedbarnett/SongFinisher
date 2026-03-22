@@ -360,8 +360,43 @@ h1 span {
 }
 
 .zone-empty:hover {
-  border-color: rgba(255,107,53,0.4);
-  background: rgba(255,107,53,0.04);
+  border-color: rgba(255,107,53,0.5);
+  background: rgba(255,107,53,0.06);
+}
+
+.zone-empty .zone-hover-overlay {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: rgba(255,107,53,0.08);
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+  border-radius: 2px;
+}
+
+.zone-empty:hover .zone-hover-overlay {
+  display: flex;
+}
+
+.zone-empty:hover .zone-default-content {
+  display: none;
+}
+
+.zone-hover-overlay .gen-plus {
+  font-size: 1.6rem;
+  font-weight: 300;
+  color: #ff6b35;
+  line-height: 1;
+}
+
+.zone-hover-overlay .gen-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #ff6b35;
 }
 
 .zone-empty.hidden { display: none; }
@@ -373,11 +408,6 @@ h1 span {
 
 .zone-sublabel {
   font-size: 0.6rem; color: rgba(255,255,255,0.1);
-}
-
-.zone-empty .zone-click-hint {
-  font-size: 0.6rem; color: rgba(255,107,53,0.5);
-  margin-top: 2px;
 }
 
 /* Progress timer in zone */
@@ -602,8 +632,14 @@ footer a:hover { text-decoration: underline; }
       <div class="waveform-zone zone-intro" id="zone-intro">
         <canvas id="canvas-intro"></canvas>
         <div class="zone-empty" id="zone-intro-empty">
-          <div class="zone-label">Intro</div>
-          <div class="zone-sublabel">click to generate</div>
+          <div class="zone-default-content">
+            <div class="zone-label">Intro</div>
+            <div class="zone-sublabel">click to generate</div>
+          </div>
+          <div class="zone-hover-overlay">
+            <div class="gen-plus">+</div>
+            <div class="gen-label">Generate</div>
+          </div>
         </div>
         <div class="zone-progress" id="intro-progress">0:00</div>
       </div>
@@ -613,8 +649,14 @@ footer a:hover { text-decoration: underline; }
       <div class="waveform-zone zone-outro" id="zone-outro">
         <canvas id="canvas-outro"></canvas>
         <div class="zone-empty" id="zone-outro-empty">
-          <div class="zone-label">Outro</div>
-          <div class="zone-sublabel">click to generate</div>
+          <div class="zone-default-content">
+            <div class="zone-label">Outro</div>
+            <div class="zone-sublabel">click to generate</div>
+          </div>
+          <div class="zone-hover-overlay">
+            <div class="gen-plus">+</div>
+            <div class="gen-label">Generate</div>
+          </div>
         </div>
         <div class="zone-progress" id="outro-progress">0:00</div>
       </div>
