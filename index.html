@@ -44,7 +44,7 @@ body {
 
 .container {
   position: relative; z-index: 2;
-  max-width: 880px; margin: 0 auto; padding: 40px 20px 60px;
+  max-width: 960px; margin: 0 auto; padding: 40px 20px 60px;
 }
 
 /* Header */
@@ -67,7 +67,7 @@ h1 span {
   font-size: 1.15rem; font-weight: 300; color: #7a7a9a;
 }
 
-/* Card base — amp panel style */
+/* Card base */
 .card {
   background: rgba(255,255,255,0.03);
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
@@ -87,9 +87,9 @@ h1 span {
 
 /* Section titles */
 .section-title {
-  font-size: 1.1rem; font-weight: 700; color: #fff;
+  font-size: 0.85rem; font-weight: 700; color: #fff;
   margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
-  text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem;
+  text-transform: uppercase; letter-spacing: 1px;
 }
 
 .section-title .icon { color: #ff6b35; }
@@ -121,6 +121,7 @@ h1 span {
   margin-bottom: 8px;
   transition: all 0.25s ease;
   animation: slideIn 0.3s ease;
+  cursor: pointer;
 }
 
 .song-card:hover {
@@ -222,7 +223,7 @@ h1 span {
 }
 .song-remove:hover { color: #ff5c5c; }
 
-/* Drop zone — smaller, below library */
+/* Drop zone */
 .add-zone {
   border: 2px dashed rgba(255,107,53,0.2);
   border-radius: 12px;
@@ -277,190 +278,229 @@ h1 span {
   box-shadow: 0 0 16px rgba(255,107,53,0.08);
 }
 
-/* Generate button */
-.generate-btn {
-  display: none; width: 100%; padding: 16px; margin-top: 16px;
-  background: linear-gradient(135deg, #ff6b35, #ff2d78);
-  border: none; border-radius: 12px;
-  color: #fff; font-family: inherit; font-size: 1.1rem; font-weight: 800;
-  cursor: pointer; transition: all 0.25s; letter-spacing: 0.5px;
-  text-transform: uppercase;
+/* ==================== WAVEFORM WORKSPACE ==================== */
+.workspace {
+  display: none;
 }
-.generate-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(255,107,53,0.3);
-}
-.generate-btn:disabled {
-  opacity: 0.4; cursor: not-allowed; transform: none;
+.workspace.active {
+  display: block;
 }
 
-/* Analyze button — per-song */
-.analyze-all-btn {
-  display: none; width: 100%; padding: 14px; margin-top: 12px;
-  background: linear-gradient(135deg, #ff6b35, #e85d26);
-  border: none; border-radius: 12px;
-  color: #fff; font-family: inherit; font-size: 1rem; font-weight: 700;
-  cursor: pointer; transition: all 0.25s; letter-spacing: 0.3px;
-}
-.analyze-all-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 24px rgba(255,107,53,0.25);
-}
-.analyze-all-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-
-/* Results section */
-#results { display: none; }
-#results.active { display: block; }
-
-/* Analysis grid */
-.analysis-grid { display: grid; gap: 10px; }
-
-.analysis-item {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 8px 16px;
-  padding: 14px 16px;
-  background: rgba(255,107,53,0.03);
-  border: 1px solid rgba(255,107,53,0.08);
-  border-radius: 10px;
+.workspace-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 20px;
 }
 
-.analysis-item .a-name { font-weight: 600; color: #fff; }
-.analysis-item .a-instrument { color: #ff6b35; font-weight: 600; text-align: right; }
-.analysis-item .a-role { color: #999; font-size: 0.85rem; grid-column: 1 / -1; }
-
-/* Assessment grid */
-.assessment-grid {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+.workspace-title {
+  font-size: 1rem; font-weight: 800; color: #fff;
+  text-transform: uppercase; letter-spacing: 1.5px;
 }
 
-@media (max-width: 600px) { .assessment-grid { grid-template-columns: 1fr; } }
-
-.assess-card {
-  padding: 16px;
-  background: rgba(255,255,255,0.025);
-  border: 1px solid rgba(255,255,255,0.05);
-  border-radius: 10px;
+.workspace-song-name {
+  font-size: 0.85rem; color: #ff6b35; font-weight: 600;
 }
 
-.assess-card .label {
-  font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 1px; color: #555; margin-bottom: 6px;
-}
-
-.assess-card .value { font-size: 1rem; color: #fff; }
-
-.tag {
-  display: inline-block; padding: 3px 10px; margin: 2px 4px 2px 0;
-  border-radius: 20px; font-size: 0.8rem; font-weight: 600;
-}
-
-.tag-present { background: rgba(0,200,120,0.12); color: #00c878; border: 1px solid rgba(0,200,120,0.2); }
-.tag-missing { background: rgba(255,92,92,0.12); color: #ff5c5c; border: 1px solid rgba(255,92,92,0.2); }
-.tag-gap { background: rgba(255,180,50,0.12); color: #ffb432; border: 1px solid rgba(255,180,50,0.2); }
-
-/* Production plan */
-.plan-section {
-  padding: 16px;
-  background: rgba(255,255,255,0.02);
-  border-left: 3px solid #ff6b35;
-  border-radius: 0 10px 10px 0;
-  margin-bottom: 10px;
-}
-
-.plan-section .ps-header {
-  display: flex; justify-content: space-between; align-items: baseline;
-  margin-bottom: 6px;
-}
-
-.plan-section .ps-name { font-weight: 700; color: #fff; }
-.plan-section .ps-bars { font-size: 0.8rem; color: #ff6b35; font-weight: 600; }
-.plan-section .ps-desc { color: #bbb; font-size: 0.9rem; line-height: 1.5; margin-bottom: 8px; }
-
-.plan-section .ps-files, .plan-section .ps-gen {
-  font-size: 0.8rem; margin-top: 4px;
-}
-.ps-files span { color: #00c878; }
-.ps-gen span { color: #ff5c5c; }
-
-.plan-notes {
-  padding: 16px;
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.05);
-  border-radius: 10px;
-  margin-top: 12px;
-  font-size: 0.9rem; color: #bbb; line-height: 1.6;
-  white-space: pre-wrap;
-}
-
-.plan-notes strong { color: #fff; }
-
-/* Summary */
-.summary-text {
-  font-size: 1.05rem; line-height: 1.7; color: #ccc;
-  font-style: italic;
-}
-
-/* Spinner */
-.spinner-wrap {
-  display: none; text-align: center; padding: 40px 20px;
-}
-.spinner-wrap.active { display: block; }
-
-.spinner {
-  width: 40px; height: 40px; margin: 0 auto 16px;
-  border: 3px solid rgba(255,107,53,0.15);
-  border-top-color: #ff6b35;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-.spinner-text { color: #7a7a9a; font-size: 0.95rem; }
-
-/* Generation progress */
-.gen-progress {
-  display: none; text-align: center; padding: 32px 20px;
-}
-.gen-progress.active { display: block; }
-.gen-progress .spinner {
-  width: 40px; height: 40px; margin: 0 auto 16px;
-  border: 3px solid rgba(255,107,53,0.15);
-  border-top-color: #ff6b35;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-.gen-status { color: #7a7a9a; font-size: 0.95rem; margin-bottom: 4px; }
-.gen-substatus { color: #444; font-size: 0.8rem; }
-
-/* Audio cards */
-.gen-results { display: none; }
-.gen-results.active { display: block; }
-
-.audio-card {
-  padding: 20px;
-  background: rgba(255,107,53,0.03);
-  border: 1px solid rgba(255,107,53,0.12);
+/* Waveform timeline */
+.waveform-timeline {
+  display: flex;
+  align-items: stretch;
+  height: 140px;
   border-radius: 12px;
-  margin-bottom: 12px;
+  overflow: hidden;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.06);
+  margin-bottom: 20px;
 }
-.audio-card-title {
-  font-weight: 700; color: #fff; margin-bottom: 12px;
-  display: flex; align-items: center; gap: 8px;
+
+.waveform-zone {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
 }
-.audio-card audio {
-  width: 100%; margin-bottom: 10px; border-radius: 8px;
+
+.waveform-zone canvas {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
 }
+
+.zone-intro {
+  flex: 0 0 15%;
+  border-right: 1px solid rgba(255,255,255,0.06);
+}
+
+.zone-song {
+  flex: 1 1 70%;
+}
+
+.zone-outro {
+  flex: 0 0 15%;
+  border-left: 1px solid rgba(255,255,255,0.06);
+}
+
+/* Empty zone placeholder */
+.zone-empty {
+  border: 2px dashed rgba(255,255,255,0.08);
+  border-radius: 4px;
+  position: absolute;
+  top: 8px; left: 8px; right: 8px; bottom: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+  pointer-events: none;
+}
+
+.zone-empty.hidden { display: none; }
+
+.zone-label {
+  font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.5px; color: rgba(255,255,255,0.15);
+}
+
+.zone-sublabel {
+  font-size: 0.6rem; color: rgba(255,255,255,0.08);
+}
+
+/* Shimmer animation for generating state */
+.zone-generating .zone-empty {
+  border-color: rgba(255,107,53,0.15);
+}
+
+.zone-generating::after {
+  content: '';
+  position: absolute; top: 0; left: -100%; width: 200%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,107,53,0.04), transparent);
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(50%); }
+}
+
+/* Playhead */
+.playhead {
+  position: absolute;
+  top: 0; width: 2px; height: 100%;
+  background: #fff;
+  box-shadow: 0 0 6px rgba(255,255,255,0.5);
+  z-index: 10;
+  display: none;
+  pointer-events: none;
+}
+
+.playhead.active { display: block; }
+
+/* Transport controls */
+.transport {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.transport-btn {
+  padding: 10px 20px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  color: #ccc;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex; align-items: center; gap: 6px;
+}
+
+.transport-btn:hover {
+  border-color: rgba(255,107,53,0.3);
+  background: rgba(255,107,53,0.06);
+  color: #fff;
+}
+
+.transport-btn.active {
+  border-color: rgba(255,107,53,0.5);
+  background: rgba(255,107,53,0.1);
+  color: #ff6b35;
+  box-shadow: 0 0 12px rgba(255,107,53,0.15);
+}
+
+.transport-btn-icon { font-size: 1rem; }
+
+.transport-time {
+  font-size: 0.8rem; color: #555; font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  min-width: 60px; text-align: center;
+}
+
+/* Download row */
+.download-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
 .download-btn {
-  display: inline-block; padding: 8px 20px;
-  background: rgba(255,107,53,0.12);
-  border: 1px solid rgba(255,107,53,0.25);
-  border-radius: 8px;
-  color: #ff6b35; font-family: inherit; font-size: 0.85rem; font-weight: 600;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 10px 20px;
+  background: rgba(255,107,53,0.08);
+  border: 1px solid rgba(255,107,53,0.2);
+  border-radius: 10px;
+  color: #ff6b35; font-family: inherit; font-size: 0.82rem; font-weight: 600;
   cursor: pointer; text-decoration: none; transition: all 0.2s;
 }
 .download-btn:hover {
-  background: rgba(255,107,53,0.22);
+  background: rgba(255,107,53,0.18);
+  border-color: rgba(255,107,53,0.4);
 }
+.download-btn.disabled {
+  opacity: 0.3; pointer-events: none;
+}
+
+/* Finish Song button */
+.finish-btn {
+  display: none; width: 100%; padding: 18px; margin-top: 16px;
+  background: linear-gradient(135deg, #ff6b35, #ff2d78);
+  border: none; border-radius: 14px;
+  color: #fff; font-family: inherit; font-size: 1.15rem; font-weight: 900;
+  cursor: pointer; transition: all 0.3s; letter-spacing: 1px;
+  text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
+}
+
+.finish-btn::before {
+  content: '';
+  position: absolute; top: 0; left: -100%; width: 200%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  transition: left 0.5s;
+}
+
+.finish-btn:hover:not(:disabled)::before {
+  left: 100%;
+}
+
+.finish-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 40px rgba(255,107,53,0.35);
+}
+.finish-btn:disabled {
+  opacity: 0.4; cursor: not-allowed; transform: none;
+}
+
+.finish-btn .btn-generating {
+  display: none;
+}
+.finish-btn.generating .btn-text { display: none; }
+.finish-btn.generating .btn-generating { display: inline; }
 
 /* Error */
 .error-msg {
@@ -469,6 +509,7 @@ h1 span {
   border-radius: 10px;
   padding: 16px; color: #ff5c5c; text-align: center;
   display: none;
+  margin-bottom: 16px;
 }
 .error-msg.active { display: block; }
 
@@ -498,6 +539,15 @@ footer a:hover { text-decoration: underline; }
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .waveform-timeline { height: 100px; }
+  .transport { gap: 6px; }
+  .transport-btn { padding: 8px 14px; font-size: 0.8rem; }
+  .download-btn { padding: 8px 14px; font-size: 0.78rem; }
+  h1 { font-size: 2.4rem; }
 }
 </style>
 </head>
@@ -532,61 +582,66 @@ footer a:hover { text-decoration: underline; }
     </div>
   </div>
 
-  <div class="spinner-wrap" id="spinner">
-    <div class="spinner"></div>
-    <div class="spinner-text">Analyzing your tracks with AI...</div>
+  <!-- Waveform Workspace -->
+  <div class="card workspace" id="workspace">
+    <div class="workspace-header">
+      <div class="workspace-title">&#127911; Workspace</div>
+      <div class="workspace-song-name" id="workspace-song-name"></div>
+    </div>
+
+    <div class="waveform-timeline" id="waveform-timeline">
+      <div class="waveform-zone zone-intro" id="zone-intro">
+        <canvas id="canvas-intro"></canvas>
+        <div class="zone-empty" id="zone-intro-empty">
+          <div class="zone-label">Intro</div>
+          <div class="zone-sublabel">awaiting generation</div>
+        </div>
+      </div>
+      <div class="waveform-zone zone-song" id="zone-song">
+        <canvas id="canvas-song"></canvas>
+        <div class="playhead" id="playhead"></div>
+      </div>
+      <div class="waveform-zone zone-outro" id="zone-outro">
+        <canvas id="canvas-outro"></canvas>
+        <div class="zone-empty" id="zone-outro-empty">
+          <div class="zone-label">Outro</div>
+          <div class="zone-sublabel">awaiting generation</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transport -->
+    <div class="transport" id="transport">
+      <button class="transport-btn" id="t-play-all" title="Play All">
+        <span class="transport-btn-icon">&#9654;</span> Play All
+      </button>
+      <button class="transport-btn" id="t-play-intro" title="Play Intro" disabled>
+        <span class="transport-btn-icon">&#9654;</span> Intro
+      </button>
+      <button class="transport-btn" id="t-play-song" title="Play Song">
+        <span class="transport-btn-icon">&#9654;</span> Song
+      </button>
+      <button class="transport-btn" id="t-play-outro" title="Play Outro" disabled>
+        <span class="transport-btn-icon">&#9654;</span> Outro
+      </button>
+      <span class="transport-time" id="transport-time">0:00</span>
+    </div>
+
+    <!-- Downloads -->
+    <div class="download-row" id="download-row">
+      <a class="download-btn disabled" id="dl-intro" download="intro.mp3">&#11015; Intro</a>
+      <a class="download-btn disabled" id="dl-outro" download="outro.mp3">&#11015; Outro</a>
+      <a class="download-btn disabled" id="dl-full" download="finished-song.wav">&#11015; Full Song</a>
+    </div>
   </div>
 
-  <div class="error-msg" id="error-msg"></div>
-
-  <div id="results">
-    <div class="card" id="res-analysis">
-      <div class="section-title"><span class="icon">&#9835;</span> File Analysis</div>
-      <div class="analysis-grid" id="analysis-grid"></div>
-    </div>
-
-    <div class="card" id="res-assessment">
-      <div class="section-title"><span class="icon">&#128269;</span> Song Assessment</div>
-      <div class="assessment-grid" id="assessment-grid"></div>
-    </div>
-
-    <div class="card" id="res-plan">
-      <div class="section-title"><span class="icon">&#127911;</span> Production Plan</div>
-      <div id="plan-sections"></div>
-      <div class="plan-notes" id="plan-notes"></div>
-    </div>
-
-    <div class="card" id="res-summary">
-      <div class="section-title"><span class="icon">&#9889;</span> Summary</div>
-      <div class="summary-text" id="summary-text"></div>
-    </div>
-  </div>
-
-  <button class="generate-btn" id="generate-btn">&#9889; Generate Intro & Outro</button>
-
-  <div class="gen-progress" id="gen-progress">
-    <div class="spinner"></div>
-    <div class="gen-status" id="gen-status">Generating your intro & outro...</div>
-    <div class="gen-substatus" id="gen-substatus">This may take a minute or two</div>
-  </div>
+  <!-- Finish Song Button -->
+  <button class="finish-btn" id="finish-btn">
+    <span class="btn-text">&#9889; Finish This Song</span>
+    <span class="btn-generating">Generating intro &amp; outro&hellip;</span>
+  </button>
 
   <div class="error-msg" id="gen-error"></div>
-
-  <div class="gen-results" id="gen-results">
-    <div class="card">
-      <div class="section-title"><span class="icon">&#127925;</span> Generated Audio</div>
-      <div class="audio-card" id="intro-card" style="display:none;">
-        <div class="audio-card-title">&#127908; Intro</div>
-        <audio id="intro-audio" controls></audio>
-        <a class="download-btn" id="intro-download" download="intro.mp3">Download Intro</a>
-      </div>
-      <div class="audio-card" id="outro-card" style="display:none;">
-        <div class="audio-card-title">&#127908; Outro</div>
-        <audio id="outro-audio" controls></audio>
-        <a class="download-btn" id="outro-download" download="outro.mp3">Download Outro</a>
-      </div>
-    </div>
-  </div>
 
   <div style="text-align:center;margin-top:40px;">
     <button class="feedback-btn" id="feedback-btn">Send Feedback</button>
@@ -621,20 +676,63 @@ footer a:hover { text-decoration: underline; }
   var fileInput = document.getElementById("file-input");
   var songListEl = document.getElementById("song-list");
   var songCountEl = document.getElementById("song-count");
-  var spinner = document.getElementById("spinner");
-  var errorMsg = document.getElementById("error-msg");
-  var resultsEl = document.getElementById("results");
   var vibeInput = document.getElementById("vibe-input");
+  var workspace = document.getElementById("workspace");
+  var workspaceSongName = document.getElementById("workspace-song-name");
+  var finishBtn = document.getElementById("finish-btn");
+  var genError = document.getElementById("gen-error");
 
-  // Library: array of { file, name, duration, analysis, status }
-  // status: "pending" | "analyzing" | "done" | "error"
+  // Canvases
+  var canvasIntro = document.getElementById("canvas-intro");
+  var canvasSong = document.getElementById("canvas-song");
+  var canvasOutro = document.getElementById("canvas-outro");
+  var zoneIntroEmpty = document.getElementById("zone-intro-empty");
+  var zoneOutroEmpty = document.getElementById("zone-outro-empty");
+  var zoneIntro = document.getElementById("zone-intro");
+  var zoneOutro = document.getElementById("zone-outro");
+  var playhead = document.getElementById("playhead");
+
+  // Transport buttons
+  var tPlayAll = document.getElementById("t-play-all");
+  var tPlayIntro = document.getElementById("t-play-intro");
+  var tPlaySong = document.getElementById("t-play-song");
+  var tPlayOutro = document.getElementById("t-play-outro");
+  var transportTime = document.getElementById("transport-time");
+
+  // Download buttons
+  var dlIntro = document.getElementById("dl-intro");
+  var dlOutro = document.getElementById("dl-outro");
+  var dlFull = document.getElementById("dl-full");
+
+  // Library
   var library = [];
   var analyzeQueue = [];
   var isAnalyzing = false;
-  var selectedIdx = 0;
+  var selectedIdx = -1;
 
+  // Audio state
   var currentAudio = null;
   var currentPlayBtn = null;
+  var audioCtx = null;
+
+  // Workspace audio buffers
+  var songBuffer = null;
+  var introBuffer = null;
+  var outroBuffer = null;
+  var introUrl = null;
+  var outroUrl = null;
+
+  // Transport playback state
+  var transportAudio = null;
+  var transportMode = null; // "all", "intro", "song", "outro"
+  var transportRaf = null;
+
+  function getAudioContext() {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    return audioCtx;
+  }
 
   // --- Drag & drop on add zone ---
   addZone.addEventListener("dragover", function (e) {
@@ -675,12 +773,9 @@ footer a:hover { text-decoration: underline; }
   }
 
   function cleanFilename(name) {
-    // Remove extension
     var dot = name.lastIndexOf(".");
     if (dot > 0) name = name.substring(0, dot);
-    // Replace hyphens and underscores with spaces
     name = name.replace(/[-_]/g, " ");
-    // Collapse multiple spaces
     name = name.replace(/\s+/g, " ").trim();
     return name;
   }
@@ -689,7 +784,6 @@ footer a:hover { text-decoration: underline; }
     for (var i = 0; i < newFiles.length; i++) {
       if (library.length >= 12) break;
       var f = newFiles[i];
-      // Avoid duplicates
       var dupe = false;
       for (var j = 0; j < library.length; j++) {
         if (library[j].file.name === f.name && library[j].file.size === f.size) {
@@ -710,7 +804,12 @@ footer a:hover { text-decoration: underline; }
         queueAnalyze(library.length - 1);
       }
     }
+    // Auto-select first if none selected
+    if (selectedIdx < 0 && library.length > 0) {
+      selectedIdx = 0;
+    }
     renderLibrary();
+    updateWorkspace();
   }
 
   function readDuration(idx) {
@@ -719,14 +818,13 @@ footer a:hover { text-decoration: underline; }
       var reader = new FileReader();
       reader.onload = function (e) {
         try {
-          var ctx = new (window.AudioContext || window.webkitAudioContext)();
-          ctx.decodeAudioData(e.target.result, function (buf) {
+          var ctx = getAudioContext();
+          // Must copy the arraybuffer since decodeAudioData consumes it
+          var copy = e.target.result.slice(0);
+          ctx.decodeAudioData(copy, function (buf) {
             library[idx].duration = buf.duration;
-            ctx.close();
             renderLibrary();
-          }, function () {
-            ctx.close();
-          });
+          }, function () {});
         } catch (err) { /* ignore */ }
       };
       reader.readAsArrayBuffer(f);
@@ -734,10 +832,12 @@ footer a:hover { text-decoration: underline; }
   }
 
   function removeFromLibrary(idx) {
-    stopCurrentAudio();
+    stopAllPlayback();
     library.splice(idx, 1);
     if (selectedIdx >= library.length) selectedIdx = Math.max(0, library.length - 1);
+    if (library.length === 0) selectedIdx = -1;
     renderLibrary();
+    updateWorkspace();
   }
 
   function stopCurrentAudio() {
@@ -751,6 +851,45 @@ footer a:hover { text-decoration: underline; }
       currentPlayBtn.innerHTML = "&#9654;";
       currentPlayBtn = null;
     }
+  }
+
+  function stopTransportPlayback() {
+    if (transportAudio) {
+      transportAudio.pause();
+      transportAudio.currentTime = 0;
+      transportAudio = null;
+    }
+    if (transportRaf) {
+      cancelAnimationFrame(transportRaf);
+      transportRaf = null;
+    }
+    transportMode = null;
+    playhead.classList.remove("active");
+    // Remove active from all transport buttons
+    var btns = document.querySelectorAll(".transport-btn");
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].classList.remove("active");
+    }
+    transportTime.textContent = "0:00";
+  }
+
+  function stopAllPlayback() {
+    stopCurrentAudio();
+    stopTransportPlayback();
+  }
+
+  function selectSong(idx) {
+    if (idx === selectedIdx) return;
+    stopAllPlayback();
+    selectedIdx = idx;
+    // Clear generated results when switching songs
+    introBuffer = null;
+    outroBuffer = null;
+    introUrl = null;
+    outroUrl = null;
+    songBuffer = null;
+    renderLibrary();
+    updateWorkspace();
   }
 
   function renderLibrary() {
@@ -807,13 +946,14 @@ footer a:hover { text-decoration: underline; }
     }
     songCountEl.textContent = countText;
 
-    // Show generate button if any song is analyzed
-    var generateBtn = document.getElementById("generate-btn");
-    if (doneCount > 0) {
-      generateBtn.style.display = "block";
-    } else {
-      generateBtn.style.display = "none";
+    // Show finish button if selected song is analyzed
+    var showFinish = false;
+    if (selectedIdx >= 0 && selectedIdx < library.length) {
+      if (library[selectedIdx].status === "done") {
+        showFinish = true;
+      }
     }
+    finishBtn.style.display = showFinish ? "block" : "none";
 
     // Bind events
     var playBtns = songListEl.querySelectorAll(".play-btn");
@@ -835,10 +975,16 @@ footer a:hover { text-decoration: underline; }
 
     var nameInputs = songListEl.querySelectorAll(".song-name");
     for (var n = 0; n < nameInputs.length; n++) {
+      nameInputs[n].addEventListener("click", function (e) {
+        e.stopPropagation();
+      });
       nameInputs[n].addEventListener("change", function () {
         var idx = parseInt(this.getAttribute("data-idx"), 10);
         library[idx].name = this.value;
         saveSongNames();
+        if (idx === selectedIdx) {
+          workspaceSongName.textContent = this.value;
+        }
       });
       nameInputs[n].addEventListener("keydown", function (e) {
         if (e.key === "Enter") this.blur();
@@ -850,8 +996,7 @@ footer a:hover { text-decoration: underline; }
     for (var c = 0; c < cards.length; c++) {
       cards[c].addEventListener("click", function () {
         var idx = parseInt(this.getAttribute("data-idx"), 10);
-        selectedIdx = idx;
-        renderLibrary();
+        selectSong(idx);
       });
     }
   }
@@ -883,7 +1028,376 @@ footer a:hover { text-decoration: underline; }
     currentPlayBtn = btn;
   }
 
-  // --- Auto-analyze queue (one at a time) ---
+  // --- Waveform drawing ---
+  function drawWaveform(canvas, audioBuffer, color) {
+    var ctx = canvas.getContext("2d");
+    var dpr = window.devicePixelRatio || 1;
+    var rect = canvas.parentElement.getBoundingClientRect();
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    canvas.style.width = rect.width + "px";
+    canvas.style.height = rect.height + "px";
+    ctx.scale(dpr, dpr);
+
+    var w = rect.width;
+    var h = rect.height;
+    var data = audioBuffer.getChannelData(0);
+    var step = Math.ceil(data.length / w);
+    var amp = h / 2;
+
+    ctx.clearRect(0, 0, w, h);
+
+    // Draw center line
+    ctx.strokeStyle = "rgba(255,255,255,0.03)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, amp);
+    ctx.lineTo(w, amp);
+    ctx.stroke();
+
+    // Draw waveform bars
+    ctx.fillStyle = color;
+    for (var i = 0; i < w; i++) {
+      var min = 1.0, max = -1.0;
+      for (var j = 0; j < step; j++) {
+        var datum = data[(i * step) + j];
+        if (datum === undefined) break;
+        if (datum < min) min = datum;
+        if (datum > max) max = datum;
+      }
+      var barHeight = Math.max(1, (max - min) * amp);
+      ctx.fillRect(i, (1 + min) * amp, 1, barHeight);
+    }
+
+    // Glow effect overlay
+    var grad = ctx.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, "rgba(0,0,0,0.2)");
+    grad.addColorStop(0.5, "rgba(0,0,0,0)");
+    grad.addColorStop(1, "rgba(0,0,0,0.2)");
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, w, h);
+  }
+
+  function clearCanvas(canvas) {
+    var ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+
+  // --- Workspace ---
+  function updateWorkspace() {
+    if (selectedIdx < 0 || selectedIdx >= library.length) {
+      workspace.classList.remove("active");
+      return;
+    }
+
+    workspace.classList.add("active");
+    workspaceSongName.textContent = library[selectedIdx].name;
+
+    // Reset zones
+    zoneIntro.classList.remove("zone-generating");
+    zoneOutro.classList.remove("zone-generating");
+    clearCanvas(canvasIntro);
+    clearCanvas(canvasOutro);
+
+    if (introBuffer) {
+      zoneIntroEmpty.classList.add("hidden");
+      drawWaveform(canvasIntro, introBuffer, "#ff2d78");
+    } else {
+      zoneIntroEmpty.classList.remove("hidden");
+    }
+
+    if (outroBuffer) {
+      zoneOutroEmpty.classList.add("hidden");
+      drawWaveform(canvasOutro, outroBuffer, "#4f8cff");
+    } else {
+      zoneOutroEmpty.classList.remove("hidden");
+    }
+
+    // Draw song waveform
+    decodeSongAudio();
+
+    // Update transport button states
+    tPlayIntro.disabled = !introBuffer;
+    tPlayOutro.disabled = !outroBuffer;
+    tPlayAll.disabled = false;
+    tPlaySong.disabled = false;
+
+    // Update download buttons
+    updateDownloads();
+  }
+
+  function decodeSongAudio() {
+    if (songBuffer) {
+      drawWaveform(canvasSong, songBuffer, "#ff6b35");
+      return;
+    }
+    if (selectedIdx < 0) return;
+    var f = library[selectedIdx].file;
+    var reader = new FileReader();
+    reader.onload = function (e) {
+      var ctx = getAudioContext();
+      var copy = e.target.result.slice(0);
+      ctx.decodeAudioData(copy, function (buf) {
+        songBuffer = buf;
+        drawWaveform(canvasSong, songBuffer, "#ff6b35");
+      }, function () {});
+    };
+    reader.readAsArrayBuffer(f);
+  }
+
+  // Resize handler
+  var resizeTimer;
+  window.addEventListener("resize", function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () {
+      if (songBuffer) drawWaveform(canvasSong, songBuffer, "#ff6b35");
+      if (introBuffer) drawWaveform(canvasIntro, introBuffer, "#ff2d78");
+      if (outroBuffer) drawWaveform(canvasOutro, outroBuffer, "#4f8cff");
+    }, 150);
+  });
+
+  // --- Transport Controls ---
+  function playTransport(mode) {
+    stopAllPlayback();
+
+    // Determine what to play
+    var sources = [];
+    if (mode === "all") {
+      if (introUrl) sources.push({ type: "url", src: introUrl, label: "intro" });
+      sources.push({ type: "file", src: library[selectedIdx].file, label: "song" });
+      if (outroUrl) sources.push({ type: "url", src: outroUrl, label: "outro" });
+    } else if (mode === "intro" && introUrl) {
+      sources.push({ type: "url", src: introUrl, label: "intro" });
+    } else if (mode === "song") {
+      sources.push({ type: "file", src: library[selectedIdx].file, label: "song" });
+    } else if (mode === "outro" && outroUrl) {
+      sources.push({ type: "url", src: outroUrl, label: "outro" });
+    }
+
+    if (sources.length === 0) return;
+
+    transportMode = mode;
+    var btnMap = { all: tPlayAll, intro: tPlayIntro, song: tPlaySong, outro: tPlayOutro };
+    if (btnMap[mode]) btnMap[mode].classList.add("active");
+
+    // Play sources sequentially
+    var currentSourceIdx = 0;
+
+    function playNext() {
+      if (currentSourceIdx >= sources.length) {
+        stopTransportPlayback();
+        return;
+      }
+      var src = sources[currentSourceIdx];
+      var audio;
+      if (src.type === "url") {
+        audio = new Audio(src.src);
+      } else {
+        var blobUrl = URL.createObjectURL(src.src);
+        audio = new Audio(blobUrl);
+        audio.addEventListener("ended", function () {
+          URL.revokeObjectURL(blobUrl);
+        });
+      }
+      transportAudio = audio;
+
+      audio.addEventListener("ended", function () {
+        currentSourceIdx++;
+        playNext();
+      });
+
+      audio.addEventListener("timeupdate", function () {
+        transportTime.textContent = formatDuration(audio.currentTime);
+        updatePlayhead(src.label, audio.currentTime, audio.duration);
+      });
+
+      audio.play();
+    }
+
+    playNext();
+  }
+
+  function updatePlayhead(label, currentTime, duration) {
+    if (!duration || duration === 0) return;
+    var timeline = document.getElementById("waveform-timeline");
+    var timelineRect = timeline.getBoundingClientRect();
+
+    var zones = {
+      intro: zoneIntro.getBoundingClientRect(),
+      song: document.getElementById("zone-song").getBoundingClientRect(),
+      outro: zoneOutro.getBoundingClientRect()
+    };
+
+    var zone = zones[label];
+    if (!zone) return;
+
+    var fraction = currentTime / duration;
+    var xInZone = zone.left - timelineRect.left + (fraction * zone.width);
+    playhead.style.left = xInZone + "px";
+    playhead.classList.add("active");
+  }
+
+  tPlayAll.addEventListener("click", function () {
+    if (transportMode === "all" && transportAudio && !transportAudio.paused) {
+      stopTransportPlayback();
+      return;
+    }
+    playTransport("all");
+  });
+
+  tPlayIntro.addEventListener("click", function () {
+    if (transportMode === "intro" && transportAudio && !transportAudio.paused) {
+      stopTransportPlayback();
+      return;
+    }
+    playTransport("intro");
+  });
+
+  tPlaySong.addEventListener("click", function () {
+    if (transportMode === "song" && transportAudio && !transportAudio.paused) {
+      stopTransportPlayback();
+      return;
+    }
+    playTransport("song");
+  });
+
+  tPlayOutro.addEventListener("click", function () {
+    if (transportMode === "outro" && transportAudio && !transportAudio.paused) {
+      stopTransportPlayback();
+      return;
+    }
+    playTransport("outro");
+  });
+
+  // --- Downloads ---
+  function updateDownloads() {
+    if (introUrl) {
+      dlIntro.href = introUrl;
+      dlIntro.classList.remove("disabled");
+    } else {
+      dlIntro.removeAttribute("href");
+      dlIntro.classList.add("disabled");
+    }
+
+    if (outroUrl) {
+      dlOutro.href = outroUrl;
+      dlOutro.classList.remove("disabled");
+    } else {
+      dlOutro.removeAttribute("href");
+      dlOutro.classList.add("disabled");
+    }
+
+    if (introBuffer && outroBuffer && songBuffer) {
+      dlFull.classList.remove("disabled");
+    } else {
+      dlFull.classList.add("disabled");
+    }
+  }
+
+  dlFull.addEventListener("click", function (e) {
+    if (dlFull.classList.contains("disabled")) {
+      e.preventDefault();
+      return;
+    }
+    e.preventDefault();
+    exportFullSong();
+  });
+
+  function exportFullSong() {
+    if (!songBuffer) return;
+    var ctx = getAudioContext();
+    var sampleRate = songBuffer.sampleRate;
+    var channels = songBuffer.numberOfChannels;
+
+    var buffers = [];
+    if (introBuffer) buffers.push(introBuffer);
+    buffers.push(songBuffer);
+    if (outroBuffer) buffers.push(outroBuffer);
+
+    var totalLength = 0;
+    for (var i = 0; i < buffers.length; i++) {
+      totalLength += buffers[i].length;
+    }
+
+    var output = ctx.createBuffer(channels, totalLength, sampleRate);
+    for (var ch = 0; ch < channels; ch++) {
+      var outputData = output.getChannelData(ch);
+      var offset = 0;
+      for (var b = 0; b < buffers.length; b++) {
+        var srcCh = ch < buffers[b].numberOfChannels ? ch : 0;
+        var srcData = buffers[b].getChannelData(srcCh);
+        outputData.set(srcData, offset);
+        offset += srcData.length;
+      }
+    }
+
+    // Encode as WAV
+    var wav = encodeWav(output);
+    var blob = new Blob([wav], { type: "audio/wav" });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = (library[selectedIdx] ? library[selectedIdx].name : "finished-song") + ".wav";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
+  }
+
+  function encodeWav(audioBuffer) {
+    var numChannels = audioBuffer.numberOfChannels;
+    var sampleRate = audioBuffer.sampleRate;
+    var format = 1; // PCM
+    var bitsPerSample = 16;
+    var bytesPerSample = bitsPerSample / 8;
+    var blockAlign = numChannels * bytesPerSample;
+    var byteRate = sampleRate * blockAlign;
+    var dataLength = audioBuffer.length * blockAlign;
+    var headerLength = 44;
+    var totalLength = headerLength + dataLength;
+    var buffer = new ArrayBuffer(totalLength);
+    var view = new DataView(buffer);
+
+    function writeString(offset, str) {
+      for (var i = 0; i < str.length; i++) {
+        view.setUint8(offset + i, str.charCodeAt(i));
+      }
+    }
+
+    writeString(0, "RIFF");
+    view.setUint32(4, totalLength - 8, true);
+    writeString(8, "WAVE");
+    writeString(12, "fmt ");
+    view.setUint32(16, 16, true);
+    view.setUint16(20, format, true);
+    view.setUint16(22, numChannels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, byteRate, true);
+    view.setUint16(32, blockAlign, true);
+    view.setUint16(34, bitsPerSample, true);
+    writeString(36, "data");
+    view.setUint32(40, dataLength, true);
+
+    var channels = [];
+    for (var ch = 0; ch < numChannels; ch++) {
+      channels.push(audioBuffer.getChannelData(ch));
+    }
+
+    var offset = 44;
+    for (var i = 0; i < audioBuffer.length; i++) {
+      for (var ch = 0; ch < numChannels; ch++) {
+        var sample = channels[ch][i];
+        sample = Math.max(-1, Math.min(1, sample));
+        sample = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+        view.setInt16(offset, sample, true);
+        offset += 2;
+      }
+    }
+
+    return buffer;
+  }
+
+  // --- Auto-analyze queue ---
   function queueAnalyze(idx) {
     analyzeQueue.push(idx);
     processQueue();
@@ -894,7 +1408,6 @@ footer a:hover { text-decoration: underline; }
     isAnalyzing = true;
     var idx = analyzeQueue.shift();
 
-    // Skip if removed
     if (idx >= library.length) {
       isAnalyzing = false;
       processQueue();
@@ -932,6 +1445,7 @@ footer a:hover { text-decoration: underline; }
           library[idx].status = "done";
         }
         renderLibrary();
+        updateWorkspace();
         isAnalyzing = false;
         processQueue();
       })
@@ -945,29 +1459,23 @@ footer a:hover { text-decoration: underline; }
       });
   }
 
-  // --- Generate ---
-  var generateBtn = document.getElementById("generate-btn");
-  var genProgress = document.getElementById("gen-progress");
-  var genStatus = document.getElementById("gen-status");
-  var genSubstatus = document.getElementById("gen-substatus");
-  var genError = document.getElementById("gen-error");
-  var genResults = document.getElementById("gen-results");
-
-  generateBtn.addEventListener("click", function () {
-    // Use selected song, fallback to first
-    var idx = selectedIdx;
-    if (idx >= library.length) idx = 0;
-    if (library.length < 1) return;
-    doGenerate(idx);
+  // --- Generate (Finish Song) ---
+  finishBtn.addEventListener("click", function () {
+    if (selectedIdx < 0 || selectedIdx >= library.length) return;
+    if (library[selectedIdx].status !== "done") return;
+    doGenerate(selectedIdx);
   });
 
   function doGenerate(idx) {
-    generateBtn.disabled = true;
-    genProgress.classList.add("active");
+    finishBtn.disabled = true;
+    finishBtn.classList.add("generating");
     genError.classList.remove("active");
-    genResults.classList.remove("active");
-    genStatus.textContent = "Preparing audio for generation...";
-    genSubstatus.textContent = "Reading your audio file...";
+
+    // Show generating shimmer on zones
+    zoneIntro.classList.add("zone-generating");
+    zoneOutro.classList.add("zone-generating");
+    zoneIntroEmpty.querySelector(".zone-sublabel").textContent = "generating...";
+    zoneOutroEmpty.querySelector(".zone-sublabel").textContent = "generating...";
 
     var entry = library[idx];
     var firstFile = entry.file;
@@ -1002,9 +1510,6 @@ footer a:hover { text-decoration: underline; }
         }
       }
 
-      genStatus.textContent = "Generating intro & outro with AI...";
-      genSubstatus.textContent = "This usually takes 1\u20132 minutes. Please be patient.";
-
       fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1022,49 +1527,87 @@ footer a:hover { text-decoration: underline; }
           });
         })
         .then(function (data) {
-          genProgress.classList.remove("active");
-          generateBtn.disabled = false;
-          showGenResults(data);
+          finishBtn.disabled = false;
+          finishBtn.classList.remove("generating");
+          zoneIntro.classList.remove("zone-generating");
+          zoneOutro.classList.remove("zone-generating");
+          handleGenResults(data);
         })
         .catch(function (err) {
-          genProgress.classList.remove("active");
-          generateBtn.disabled = false;
+          finishBtn.disabled = false;
+          finishBtn.classList.remove("generating");
+          zoneIntro.classList.remove("zone-generating");
+          zoneOutro.classList.remove("zone-generating");
+          zoneIntroEmpty.querySelector(".zone-sublabel").textContent = "awaiting generation";
+          zoneOutroEmpty.querySelector(".zone-sublabel").textContent = "awaiting generation";
           genError.textContent = err.message || "Generation failed. Please try again.";
           genError.classList.add("active");
         });
     };
     reader.onerror = function () {
-      genProgress.classList.remove("active");
-      generateBtn.disabled = false;
+      finishBtn.disabled = false;
+      finishBtn.classList.remove("generating");
+      zoneIntro.classList.remove("zone-generating");
+      zoneOutro.classList.remove("zone-generating");
       genError.textContent = "Failed to read audio file.";
       genError.classList.add("active");
     };
     reader.readAsArrayBuffer(firstFile);
   }
 
-  function showGenResults(data) {
-    genResults.classList.add("active");
-
-    var introCard = document.getElementById("intro-card");
-    var outroCard = document.getElementById("outro-card");
-    var introAudio = document.getElementById("intro-audio");
-    var outroAudio = document.getElementById("outro-audio");
-    var introDownload = document.getElementById("intro-download");
-    var outroDownload = document.getElementById("outro-download");
+  function handleGenResults(data) {
+    var ctx = getAudioContext();
+    var pending = 0;
 
     if (data.intro && data.intro.url) {
-      introAudio.src = data.intro.url;
-      introDownload.href = data.intro.url;
-      introCard.style.display = "block";
+      introUrl = data.intro.url;
+      pending++;
+      fetchAndDecode(data.intro.url, function (buf) {
+        introBuffer = buf;
+        zoneIntroEmpty.classList.add("hidden");
+        drawWaveform(canvasIntro, introBuffer, "#ff2d78");
+        tPlayIntro.disabled = false;
+        pending--;
+        if (pending === 0) finalizegen();
+      });
     }
 
     if (data.outro && data.outro.url) {
-      outroAudio.src = data.outro.url;
-      outroDownload.href = data.outro.url;
-      outroCard.style.display = "block";
+      outroUrl = data.outro.url;
+      pending++;
+      fetchAndDecode(data.outro.url, function (buf) {
+        outroBuffer = buf;
+        zoneOutroEmpty.classList.add("hidden");
+        drawWaveform(canvasOutro, outroBuffer, "#4f8cff");
+        tPlayOutro.disabled = false;
+        pending--;
+        if (pending === 0) finalizegen();
+      });
     }
 
-    genResults.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (pending === 0) finalizegen();
+
+    function finalizegen() {
+      updateDownloads();
+      // Scroll to workspace
+      workspace.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
+  function fetchAndDecode(url, callback) {
+    var ctx = getAudioContext();
+    fetch(url)
+      .then(function (res) { return res.arrayBuffer(); })
+      .then(function (buf) {
+        ctx.decodeAudioData(buf, function (audioBuffer) {
+          callback(audioBuffer);
+        }, function () {
+          callback(null);
+        });
+      })
+      .catch(function () {
+        callback(null);
+      });
   }
 
   // --- Helpers ---
@@ -1099,7 +1642,6 @@ footer a:hover { text-decoration: underline; }
       { url: "/samples/song3-G-Am-G-Em.m4a", name: "song3-G-Am-G-Em.m4a" }
     ];
 
-    var loaded = 0;
     sampleFiles.forEach(function (sf) {
       fetch(sf.url)
         .then(function (r) { return r.blob(); })
@@ -1107,7 +1649,6 @@ footer a:hover { text-decoration: underline; }
           var file = new File([blob], sf.name, { type: "audio/x-m4a" });
           var dt = new DataTransfer();
           dt.items.add(file);
-          // Add via the addFiles path
           addFiles(dt.files);
         })
         .catch(function () {
