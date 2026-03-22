@@ -328,6 +328,7 @@ footer a { color: #4f8cff; text-decoration: none; }
   </div>
 
   <button class="analyze-btn" id="analyze-btn" disabled>Analyze & Complete</button>
+  <button class="analyze-btn" id="sample-btn" style="background:linear-gradient(135deg,#2a9d8f,#264653);margin-top:10px;font-size:0.95rem;">Try with Ted's 3 Guitar Sketches</button>
 
   <div class="spinner-wrap" id="spinner">
     <div class="spinner"></div>
@@ -661,3 +662,37 @@ footer a { color: #4f8cff; text-decoration: none; }
 </script>
 </body>
 </html>
+<script>
+(function() {
+  var sampleBtn = document.getElementById("sample-btn");
+  if (!sampleBtn) return;
+  sampleBtn.addEventListener("click", function() {
+    sampleBtn.disabled = true;
+    sampleBtn.textContent = "Loading samples...";
+    var sampleFiles = [
+      { url: "/samples/song1-F-C-Em-G-sad.m4a", name: "F-C-Em-G_sad.m4a" },
+      { url: "/samples/song2-D-Am-C-G.m4a", name: "D-Am-C-G_D-Am-C-Em.m4a" },
+      { url: "/samples/song3-G-Am-G-Em.m4a", name: "G-Am_G-Em.m4a" }
+    ];
+    Promise.all(sampleFiles.map(function(sf) {
+      return fetch(sf.url).then(function(r) { return r.blob(); }).then(function(blob) {
+        return new File([blob], sf.name, { type: "audio/x-m4a" });
+      });
+    })).then(function(fileList) {
+      // Trigger the existing addFiles function by dispatching to the file input
+      var dt = new DataTransfer();
+      fileList.forEach(function(f) { dt.items.add(f); });
+      var fileInput = document.getElementById("file-input");
+      fileInput.files = dt.files;
+      fileInput.dispatchEvent(new Event("change"));
+      sampleBtn.textContent = "✓ Samples loaded — click Analyze & Complete";
+      sampleBtn.disabled = false;
+      // Also set the vibe
+      document.getElementById("vibe-input").value = "melancholic indie, acoustic, emotional";
+    }).catch(function(err) {
+      sampleBtn.textContent = "Failed to load samples";
+      sampleBtn.disabled = false;
+    });
+  });
+})();
+</script>
