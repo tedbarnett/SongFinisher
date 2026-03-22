@@ -102,6 +102,17 @@ h1 span { color: #4f8cff; }
 
 .file-icon { font-size: 1.3rem; flex-shrink: 0; }
 
+.file-play {
+  background: none; border: 1px solid rgba(79,140,255,0.3);
+  color: #4f8cff; font-size: 1rem; width: 32px; height: 32px;
+  border-radius: 50%; cursor: pointer; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s; padding: 0;
+}
+.file-play:hover { background: rgba(79,140,255,0.1); border-color: #4f8cff; }
+.file-play.playing { color: #00c878; border-color: rgba(0,200,120,0.4); }
+.file-play.playing:hover { background: rgba(0,200,120,0.1); }
+
 .file-info { flex: 1; min-width: 0; }
 
 .file-name {
@@ -553,33 +564,88 @@ footer a { color: #4f8cff; text-decoration: none; }
     updateBtn();
   }
 
+  var currentAudio = null;
+  var currentPlayBtn = null;
+
+  function stopCurrentAudio() {
+    if (currentAudio) {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+      currentAudio = null;
+    }
+    if (currentPlayBtn) {
+      currentPlayBtn.classList.remove("playing");
+      currentPlayBtn.innerHTML = "&#9654;";
+      currentPlayBtn = null;
+    }
+  }
+
   function renderFiles() {
+    stopCurrentAudio();
     var html = "";
     for (var i = 0; i < files.length; i++) {
       var f = files[i];
       var dur = f.duration > 0 ? formatDuration(f.duration) : "...";
       var size = formatSize(f.file.size);
-      var bars = generateBars();
       html +=
         '<div class="file-item">' +
-        '<div class="file-icon">&#127926;</div>' +
+        '<button class="file-play" data-idx="' + i + '" title="Play/Pause">&#9654;</button>' +
         '<div class="file-info">' +
         '<div class="file-name">' + escapeHtml(f.file.name) + "</div>" +
         '<div class="file-meta">' + dur + " &middot; " + size + "</div>" +
         "</div>" +
-        '<div class="file-bars">' + bars + "</div>" +
         '<button class="file-remove" data-idx="' + i + '" title="Remove">&times;</button>' +
         "</div>";
     }
     fileListEl.innerHTML = html;
 
+    // Bind play buttons
+    var playBtns = fileListEl.querySelectorAll(".file-play");
+    for (var p = 0; p < playBtns.length; p++) {
+      playBtns[p].addEventListener("click", function () {
+        var idx = parseInt(this.getAttribute("data-idx"), 10);
+        togglePlay(idx, this);
+      });
+    }
+
     // Bind remove buttons
     var btns = fileListEl.querySelectorAll(".file-remove");
     for (var b = 0; b < btns.length; b++) {
       btns[b].addEventListener("click", function () {
+        stopCurrentAudio();
         removeFile(parseInt(this.getAttribute("data-idx"), 10));
       });
     }
+  }
+
+  function togglePlay(idx, btn) {
+    // If clicking the same file that's playing, pause it
+    if (currentPlayBtn === btn && currentAudio && !currentAudio.paused) {
+      currentAudio.pause();
+      btn.classList.remove("playing");
+      btn.innerHTML = "&#9654;";
+      return;
+    }
+
+    // Stop whatever is playing
+    stopCurrentAudio();
+
+    // Create object URL and play
+    var f = files[idx].file;
+    var url = URL.createObjectURL(f);
+    var audio = new Audio(url);
+    audio.addEventListener("ended", function () {
+      btn.classList.remove("playing");
+      btn.innerHTML = "&#9654;";
+      currentAudio = null;
+      currentPlayBtn = null;
+      URL.revokeObjectURL(url);
+    });
+    audio.play();
+    btn.classList.add("playing");
+    btn.innerHTML = "&#9646;&#9646;";
+    currentAudio = audio;
+    currentPlayBtn = btn;
   }
 
   function generateBars() {
