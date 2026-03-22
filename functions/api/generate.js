@@ -64,7 +64,7 @@ async function runMusicGen(token, prompt, audioDataUri, duration) {
       "Prefer": "wait"
     },
     body: JSON.stringify({
-      version: "671ac645ce5e552cc63a54a2bbff63fcf798043055f2a91f72644d73f1c3c710",
+      version: "671ac645ce5e552cc63a54a2bbff63fcf798043055d2dac5fc9e36a837eedcfb",
       input: {
         model_version: "stereo-melody-large",
         prompt: prompt,
