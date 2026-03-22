@@ -5,223 +5,331 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Song Finisher — AI Completes Your Music</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;600;700;900&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
   font-family: 'Source Sans 3', sans-serif;
-  background: #1a1a2e;
+  background: #0d0d14;
   color: #e0e0e0;
   min-height: 100vh;
   overflow-x: hidden;
 }
 
-.bg-glow {
+/* Animated gradient background */
+.bg-anim {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
   pointer-events: none; z-index: 0;
   background:
-    radial-gradient(ellipse 60% 50% at 20% 20%, rgba(79,140,255,0.08) 0%, transparent 70%),
-    radial-gradient(ellipse 50% 60% at 80% 80%, rgba(120,80,255,0.06) 0%, transparent 70%);
+    radial-gradient(ellipse 80% 60% at 10% 90%, rgba(255,107,53,0.07) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 80% at 90% 10%, rgba(120,40,200,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 50% at 50% 50%, rgba(30,20,80,0.5) 0%, transparent 80%);
+  animation: bgShift 12s ease-in-out infinite alternate;
+}
+
+@keyframes bgShift {
+  0% { opacity: 0.8; filter: hue-rotate(0deg); }
+  50% { opacity: 1; filter: hue-rotate(15deg); }
+  100% { opacity: 0.8; filter: hue-rotate(-10deg); }
+}
+
+/* Noise overlay */
+.noise {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 1; opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
 }
 
 .container {
-  position: relative; z-index: 1;
-  max-width: 860px; margin: 0 auto; padding: 40px 20px 60px;
+  position: relative; z-index: 2;
+  max-width: 880px; margin: 0 auto; padding: 40px 20px 60px;
 }
 
+/* Header */
 header { text-align: center; margin-bottom: 48px; }
 
 h1 {
-  font-size: 2.4rem; font-weight: 700; color: #fff;
-  margin-bottom: 8px; letter-spacing: -0.5px;
+  font-size: 3.2rem; font-weight: 900; color: #fff;
+  margin-bottom: 8px; letter-spacing: -1px;
+  text-shadow: 0 0 40px rgba(255,107,53,0.3);
 }
 
-h1 span { color: #4f8cff; }
+h1 span {
+  background: linear-gradient(135deg, #ff6b35, #ff2d78);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
 
 .subtitle {
-  font-size: 1.1rem; font-weight: 300; color: #8a8aaf;
+  font-size: 1.15rem; font-weight: 300; color: #7a7a9a;
 }
 
-/* Glass card */
+/* Card base — amp panel style */
 .card {
-  background: rgba(255,255,255,0.04);
+  background: rgba(255,255,255,0.03);
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.06);
   border-radius: 16px;
-  padding: 32px;
+  padding: 28px;
   margin-bottom: 24px;
+  position: relative;
+  overflow: hidden;
 }
 
-/* Drop zone */
-.drop-zone {
-  border: 2px dashed rgba(79,140,255,0.35);
+.card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,107,53,0.3), transparent);
+}
+
+/* Section titles */
+.section-title {
+  font-size: 1.1rem; font-weight: 700; color: #fff;
+  margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+  text-transform: uppercase; letter-spacing: 1px; font-size: 0.85rem;
+}
+
+.section-title .icon { color: #ff6b35; }
+
+/* Library */
+.library-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 16px;
+}
+
+.library-header h2 {
+  font-size: 1.3rem; font-weight: 900; color: #fff;
+  text-transform: uppercase; letter-spacing: 1.5px;
+}
+
+.song-count {
+  font-size: 0.8rem; color: #666; font-weight: 600;
+  background: rgba(255,255,255,0.05);
+  padding: 4px 12px; border-radius: 20px;
+}
+
+/* Song card */
+.song-card {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 16px;
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.05);
   border-radius: 12px;
-  padding: 48px 24px;
+  margin-bottom: 8px;
+  transition: all 0.25s ease;
+  animation: slideIn 0.3s ease;
+}
+
+.song-card:hover {
+  border-color: rgba(255,107,53,0.2);
+  background: rgba(255,255,255,0.04);
+}
+
+.song-card.selected {
+  border-color: rgba(255,107,53,0.4);
+  background: rgba(255,107,53,0.04);
+  box-shadow: 0 0 20px rgba(255,107,53,0.06);
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* Play button */
+.play-btn {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: rgba(255,107,53,0.1);
+  border: 1.5px solid rgba(255,107,53,0.3);
+  color: #ff6b35; font-size: 0.9rem;
+  cursor: pointer; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.25s; padding: 0;
+}
+
+.play-btn:hover {
+  background: rgba(255,107,53,0.2);
+  border-color: #ff6b35;
+  box-shadow: 0 0 12px rgba(255,107,53,0.25);
+}
+
+.play-btn.playing {
+  background: rgba(255,107,53,0.2);
+  border-color: #ff6b35;
+  box-shadow: 0 0 16px rgba(255,107,53,0.3);
+  animation: glowPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%, 100% { box-shadow: 0 0 12px rgba(255,107,53,0.25); }
+  50% { box-shadow: 0 0 20px rgba(255,107,53,0.45); }
+}
+
+/* Song info */
+.song-info { flex: 1; min-width: 0; }
+
+.song-name {
+  font-weight: 700; font-size: 0.95rem; color: #fff;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  cursor: text; padding: 2px 4px; border-radius: 4px;
+  border: 1px solid transparent; transition: border-color 0.2s;
+  outline: none; display: block; background: transparent;
+  font-family: inherit;
+}
+
+.song-name:hover { border-color: rgba(255,255,255,0.1); }
+.song-name:focus {
+  border-color: rgba(255,107,53,0.4);
+  background: rgba(255,255,255,0.03);
+}
+
+.song-meta {
+  font-size: 0.8rem; color: #666; margin-top: 2px;
+  padding-left: 5px;
+}
+
+.song-stats {
+  font-size: 0.8rem; color: #ff6b35; margin-top: 2px;
+  padding-left: 5px; font-weight: 600;
+}
+
+/* Status indicators */
+.song-status { flex-shrink: 0; display: flex; align-items: center; gap: 8px; }
+
+.mini-spinner {
+  width: 18px; height: 18px;
+  border: 2px solid rgba(255,107,53,0.2);
+  border-top-color: #ff6b35;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.status-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: #00c878;
+  box-shadow: 0 0 8px rgba(0,200,120,0.4);
+}
+
+.song-remove {
+  background: none; border: none; color: #444; font-size: 1.2rem;
+  cursor: pointer; padding: 4px 8px; flex-shrink: 0;
+  transition: color 0.2s;
+}
+.song-remove:hover { color: #ff5c5c; }
+
+/* Drop zone — smaller, below library */
+.add-zone {
+  border: 2px dashed rgba(255,107,53,0.2);
+  border-radius: 12px;
+  padding: 24px;
   text-align: center;
   cursor: pointer;
   transition: all 0.25s ease;
   position: relative;
+  margin-top: 8px;
 }
 
-.drop-zone:hover, .drop-zone.dragover {
-  border-color: #4f8cff;
-  background: rgba(79,140,255,0.06);
+.add-zone:hover, .add-zone.dragover {
+  border-color: rgba(255,107,53,0.5);
+  background: rgba(255,107,53,0.03);
 }
 
-.drop-zone-icon {
-  font-size: 3rem; margin-bottom: 12px; opacity: 0.6;
+.add-zone-text {
+  font-size: 0.95rem; color: #666;
 }
 
-.drop-zone-text {
-  font-size: 1.1rem; color: #aaa; margin-bottom: 4px;
+.add-zone-text .bolt { color: #ff6b35; margin-right: 6px; }
+
+.add-zone-hint {
+  font-size: 0.75rem; color: #444; margin-top: 4px;
 }
 
-.drop-zone-hint {
-  font-size: 0.85rem; color: #666;
-}
-
-.drop-zone input[type="file"] {
+.add-zone input[type="file"] {
   position: absolute; inset: 0; opacity: 0; cursor: pointer;
 }
 
-/* File list */
-.file-list { margin-top: 20px; }
-
-.file-item {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px 16px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 10px;
-  margin-bottom: 8px;
-  animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-
-.file-icon { font-size: 1.3rem; flex-shrink: 0; }
-
-.file-play {
-  background: none; border: 1px solid rgba(79,140,255,0.3);
-  color: #4f8cff; font-size: 1rem; width: 32px; height: 32px;
-  border-radius: 50%; cursor: pointer; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  transition: all 0.2s; padding: 0;
-}
-.file-play:hover { background: rgba(79,140,255,0.1); border-color: #4f8cff; }
-.file-play.playing { color: #00c878; border-color: rgba(0,200,120,0.4); }
-.file-play.playing:hover { background: rgba(0,200,120,0.1); }
-
-.file-info { flex: 1; min-width: 0; }
-
-.file-name {
-  font-weight: 600; font-size: 0.95rem; color: #fff;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-
-.file-meta { font-size: 0.8rem; color: #777; margin-top: 2px; }
-
-.file-bars {
-  display: flex; align-items: flex-end; gap: 2px; height: 28px; flex-shrink: 0;
-}
-
-.file-bars .bar {
-  width: 3px; border-radius: 2px; background: #4f8cff;
-  animation: pulse 1.2s ease-in-out infinite alternate;
-}
-
-@keyframes pulse { from { opacity: 0.3; } to { opacity: 1; } }
-
-.file-remove {
-  background: none; border: none; color: #666; font-size: 1.2rem;
-  cursor: pointer; padding: 4px 8px; flex-shrink: 0;
-  transition: color 0.2s;
-}
-.file-remove:hover { color: #ff5c5c; }
-
 /* Vibe input */
-.vibe-section { margin-top: 20px; }
+.vibe-section { margin-top: 24px; }
 
 .vibe-label {
-  font-size: 0.9rem; font-weight: 600; color: #aaa; margin-bottom: 8px;
+  font-size: 0.85rem; font-weight: 700; color: #888;
+  margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;
 }
+
+.vibe-label .bolt { color: #ff6b35; }
 
 .vibe-input {
-  width: 100%; padding: 12px 16px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.1);
+  width: 100%; padding: 14px 18px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
   border-radius: 10px;
   color: #fff; font-family: inherit; font-size: 0.95rem;
-  outline: none; transition: border-color 0.2s;
+  outline: none; transition: all 0.25s;
 }
-.vibe-input::placeholder { color: #555; }
-.vibe-input:focus { border-color: #4f8cff; }
+.vibe-input::placeholder { color: #444; }
+.vibe-input:focus {
+  border-color: rgba(255,107,53,0.4);
+  box-shadow: 0 0 16px rgba(255,107,53,0.08);
+}
 
-/* Analyze button */
-.analyze-btn {
-  display: block; width: 100%; padding: 16px;
-  background: linear-gradient(135deg, #4f8cff, #6c5ce7);
+/* Generate button */
+.generate-btn {
+  display: none; width: 100%; padding: 16px; margin-top: 16px;
+  background: linear-gradient(135deg, #ff6b35, #ff2d78);
   border: none; border-radius: 12px;
-  color: #fff; font-family: inherit; font-size: 1.1rem; font-weight: 700;
-  cursor: pointer; transition: all 0.25s; letter-spacing: 0.3px;
+  color: #fff; font-family: inherit; font-size: 1.1rem; font-weight: 800;
+  cursor: pointer; transition: all 0.25s; letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
-.analyze-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 30px rgba(79,140,255,0.3);
+.generate-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(255,107,53,0.3);
 }
-.analyze-btn:disabled {
+.generate-btn:disabled {
   opacity: 0.4; cursor: not-allowed; transform: none;
 }
 
-/* Spinner */
-.spinner-wrap {
-  display: none; text-align: center; padding: 40px 20px;
+/* Analyze button — per-song */
+.analyze-all-btn {
+  display: none; width: 100%; padding: 14px; margin-top: 12px;
+  background: linear-gradient(135deg, #ff6b35, #e85d26);
+  border: none; border-radius: 12px;
+  color: #fff; font-family: inherit; font-size: 1rem; font-weight: 700;
+  cursor: pointer; transition: all 0.25s; letter-spacing: 0.3px;
 }
-.spinner-wrap.active { display: block; }
-
-.spinner {
-  width: 40px; height: 40px; margin: 0 auto 16px;
-  border: 3px solid rgba(79,140,255,0.2);
-  border-top-color: #4f8cff;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+.analyze-all-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(255,107,53,0.25);
 }
-@keyframes spin { to { transform: rotate(360deg); } }
+.analyze-all-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
-.spinner-text { color: #8a8aaf; font-size: 0.95rem; }
-
-/* Results */
+/* Results section */
 #results { display: none; }
 #results.active { display: block; }
 
-.section-title {
-  font-size: 1.2rem; font-weight: 700; color: #fff;
-  margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
-}
-
-.section-title .icon { color: #4f8cff; }
-
-/* File analysis table */
-.analysis-grid {
-  display: grid; gap: 10px;
-}
+/* Analysis grid */
+.analysis-grid { display: grid; gap: 10px; }
 
 .analysis-item {
   display: grid;
   grid-template-columns: 1fr auto;
   gap: 8px 16px;
   padding: 14px 16px;
-  background: rgba(79,140,255,0.04);
-  border: 1px solid rgba(79,140,255,0.1);
+  background: rgba(255,107,53,0.03);
+  border: 1px solid rgba(255,107,53,0.08);
   border-radius: 10px;
 }
 
 .analysis-item .a-name { font-weight: 600; color: #fff; }
-.analysis-item .a-instrument { color: #4f8cff; font-weight: 600; text-align: right; }
+.analysis-item .a-instrument { color: #ff6b35; font-weight: 600; text-align: right; }
 .analysis-item .a-role { color: #999; font-size: 0.85rem; grid-column: 1 / -1; }
 
-/* Song assessment */
+/* Assessment grid */
 .assessment-grid {
   display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
 }
@@ -230,14 +338,14 @@ h1 span { color: #4f8cff; }
 
 .assess-card {
   padding: 16px;
-  background: rgba(255,255,255,0.03);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.05);
   border-radius: 10px;
 }
 
 .assess-card .label {
-  font-size: 0.75rem; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 1px; color: #666; margin-bottom: 6px;
+  font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1px; color: #555; margin-bottom: 6px;
 }
 
 .assess-card .value { font-size: 1rem; color: #fff; }
@@ -255,7 +363,7 @@ h1 span { color: #4f8cff; }
 .plan-section {
   padding: 16px;
   background: rgba(255,255,255,0.02);
-  border-left: 3px solid #4f8cff;
+  border-left: 3px solid #ff6b35;
   border-radius: 0 10px 10px 0;
   margin-bottom: 10px;
 }
@@ -266,7 +374,7 @@ h1 span { color: #4f8cff; }
 }
 
 .plan-section .ps-name { font-weight: 700; color: #fff; }
-.plan-section .ps-bars { font-size: 0.8rem; color: #4f8cff; font-weight: 600; }
+.plan-section .ps-bars { font-size: 0.8rem; color: #ff6b35; font-weight: 600; }
 .plan-section .ps-desc { color: #bbb; font-size: 0.9rem; line-height: 1.5; margin-bottom: 8px; }
 
 .plan-section .ps-files, .plan-section .ps-gen {
@@ -278,7 +386,7 @@ h1 span { color: #4f8cff; }
 .plan-notes {
   padding: 16px;
   background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.05);
   border-radius: 10px;
   margin-top: 12px;
   font-size: 0.9rem; color: #bbb; line-height: 1.6;
@@ -287,27 +395,27 @@ h1 span { color: #4f8cff; }
 
 .plan-notes strong { color: #fff; }
 
-/* Summary card */
+/* Summary */
 .summary-text {
   font-size: 1.05rem; line-height: 1.7; color: #ccc;
   font-style: italic;
 }
 
-/* Generate button */
-.generate-btn {
-  display: block; width: 100%; padding: 16px; margin-top: 20px;
-  background: linear-gradient(135deg, #00c878, #0a8f6a);
-  border: none; border-radius: 12px;
-  color: #fff; font-family: inherit; font-size: 1.1rem; font-weight: 700;
-  cursor: pointer; transition: all 0.25s; letter-spacing: 0.3px;
+/* Spinner */
+.spinner-wrap {
+  display: none; text-align: center; padding: 40px 20px;
 }
-.generate-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 8px 30px rgba(0,200,120,0.3);
+.spinner-wrap.active { display: block; }
+
+.spinner {
+  width: 40px; height: 40px; margin: 0 auto 16px;
+  border: 3px solid rgba(255,107,53,0.15);
+  border-top-color: #ff6b35;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
-.generate-btn:disabled {
-  opacity: 0.4; cursor: not-allowed; transform: none;
-}
+
+.spinner-text { color: #7a7a9a; font-size: 0.95rem; }
 
 /* Generation progress */
 .gen-progress {
@@ -316,22 +424,22 @@ h1 span { color: #4f8cff; }
 .gen-progress.active { display: block; }
 .gen-progress .spinner {
   width: 40px; height: 40px; margin: 0 auto 16px;
-  border: 3px solid rgba(0,200,120,0.2);
-  border-top-color: #00c878;
+  border: 3px solid rgba(255,107,53,0.15);
+  border-top-color: #ff6b35;
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
-.gen-status { color: #8a8aaf; font-size: 0.95rem; margin-bottom: 4px; }
-.gen-substatus { color: #555; font-size: 0.8rem; }
+.gen-status { color: #7a7a9a; font-size: 0.95rem; margin-bottom: 4px; }
+.gen-substatus { color: #444; font-size: 0.8rem; }
 
-/* Audio player cards */
+/* Audio cards */
 .gen-results { display: none; }
 .gen-results.active { display: block; }
 
 .audio-card {
   padding: 20px;
-  background: rgba(0,200,120,0.04);
-  border: 1px solid rgba(0,200,120,0.15);
+  background: rgba(255,107,53,0.03);
+  border: 1px solid rgba(255,107,53,0.12);
   border-radius: 12px;
   margin-bottom: 12px;
 }
@@ -344,20 +452,20 @@ h1 span { color: #4f8cff; }
 }
 .download-btn {
   display: inline-block; padding: 8px 20px;
-  background: rgba(0,200,120,0.15);
-  border: 1px solid rgba(0,200,120,0.3);
+  background: rgba(255,107,53,0.12);
+  border: 1px solid rgba(255,107,53,0.25);
   border-radius: 8px;
-  color: #00c878; font-family: inherit; font-size: 0.85rem; font-weight: 600;
+  color: #ff6b35; font-family: inherit; font-size: 0.85rem; font-weight: 600;
   cursor: pointer; text-decoration: none; transition: all 0.2s;
 }
 .download-btn:hover {
-  background: rgba(0,200,120,0.25);
+  background: rgba(255,107,53,0.22);
 }
 
 /* Error */
 .error-msg {
-  background: rgba(255,92,92,0.1);
-  border: 1px solid rgba(255,92,92,0.2);
+  background: rgba(255,92,92,0.08);
+  border: 1px solid rgba(255,92,92,0.15);
   border-radius: 10px;
   padding: 16px; color: #ff5c5c; text-align: center;
   display: none;
@@ -367,40 +475,62 @@ h1 span { color: #4f8cff; }
 /* Footer */
 footer {
   text-align: center; margin-top: 48px; padding-top: 24px;
-  border-top: 1px solid rgba(255,255,255,0.06);
-  color: #555; font-size: 0.8rem;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  color: #444; font-size: 0.8rem;
 }
-footer a { color: #4f8cff; text-decoration: none; }
+footer a { color: #ff6b35; text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+
+/* Feedback button */
+.feedback-btn {
+  background: none;
+  border: 1px solid rgba(255,107,53,0.2);
+  color: #ff6b35; font-family: inherit; font-size: 0.9rem;
+  padding: 10px 28px; border-radius: 10px; cursor: pointer;
+  transition: all 0.2s;
+}
+.feedback-btn:hover {
+  border-color: rgba(255,107,53,0.4);
+  background: rgba(255,107,53,0.05);
+  box-shadow: 0 0 12px rgba(255,107,53,0.1);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 </style>
 </head>
 <body>
-<div class="bg-glow"></div>
+<div class="bg-anim"></div>
+<div class="noise"></div>
 <div class="container">
 
   <header>
     <h1>Song <span>Finisher</span></h1>
-    <p class="subtitle">Upload your rough tracks. AI figures out what's missing.</p>
+    <p class="subtitle">Drop your rough tracks. AI figures out what's missing.</p>
   </header>
 
-  <div class="card" id="upload-card">
-    <div class="drop-zone" id="drop-zone">
+  <!-- Library -->
+  <div class="card" id="library-card">
+    <div class="library-header">
+      <h2>&#9835; Library</h2>
+      <span class="song-count" id="song-count">0 tracks</span>
+    </div>
+    <div id="song-list"></div>
+
+    <div class="add-zone" id="add-zone">
       <input type="file" id="file-input" multiple accept="audio/*,.mid,.midi">
-      <div class="drop-zone-icon">&#127925;</div>
-      <div class="drop-zone-text">Drag & drop your audio files here</div>
-      <div class="drop-zone-hint">MP3, WAV, M4A, MIDI, AIFF, FLAC — up to 8 files</div>
+      <div class="add-zone-text"><span class="bolt">&#9889;</span>Drop more tracks here</div>
+      <div class="add-zone-hint">MP3, WAV, M4A, MIDI, AIFF, FLAC</div>
     </div>
 
-    <div class="file-list" id="file-list"></div>
-
     <div class="vibe-section">
-      <div class="vibe-label">Describe the vibe (optional)</div>
+      <div class="vibe-label"><span class="bolt">&#9889;</span> Describe the vibe (optional)</div>
       <input class="vibe-input" id="vibe-input" type="text"
         placeholder='e.g. "dreamy indie", "upbeat funk", "dark electronic ballad"'>
     </div>
   </div>
-
-  <button class="analyze-btn" id="analyze-btn" disabled>Analyze & Complete</button>
-  <button class="analyze-btn" id="sample-btn" style="background:linear-gradient(135deg,#2a9d8f,#264653);margin-top:10px;font-size:0.95rem;">Try with Ted's 3 Guitar Sketches</button>
 
   <div class="spinner-wrap" id="spinner">
     <div class="spinner"></div>
@@ -432,7 +562,7 @@ footer a { color: #4f8cff; text-decoration: none; }
     </div>
   </div>
 
-  <button class="generate-btn" id="generate-btn" style="display:none;">Generate Intro & Outro</button>
+  <button class="generate-btn" id="generate-btn">&#9889; Generate Intro & Outro</button>
 
   <div class="gen-progress" id="gen-progress">
     <div class="spinner"></div>
@@ -459,22 +589,22 @@ footer a { color: #4f8cff; text-decoration: none; }
   </div>
 
   <div style="text-align:center;margin-top:40px;">
-    <button id="feedback-btn" style="background:none;border:1px solid rgba(79,140,255,0.3);color:#4f8cff;font-family:inherit;font-size:0.95rem;padding:10px 28px;border-radius:10px;cursor:pointer;transition:all 0.2s;">Send Feedback</button>
-    <a href="/feedback.html" style="display:block;margin-top:10px;color:#666;font-size:0.8rem;text-decoration:none;">View all feedback</a>
+    <button class="feedback-btn" id="feedback-btn">Send Feedback</button>
+    <a href="/feedback.html" style="display:block;margin-top:10px;color:#555;font-size:0.8rem;text-decoration:none;">View all feedback</a>
   </div>
 
   <!-- Feedback Modal -->
-  <div id="feedback-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100;justify-content:center;align-items:center;">
-    <div style="background:rgba(26,26,46,0.95);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:32px;max-width:460px;width:90%;margin:auto;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">
+  <div id="feedback-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:100;">
+    <div style="background:rgba(13,13,20,0.97);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:32px;max-width:460px;width:90%;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
         <span style="font-size:1.2rem;font-weight:700;color:#fff;">Send Feedback</span>
-        <button id="feedback-close" style="background:none;border:none;color:#666;font-size:1.4rem;cursor:pointer;">&times;</button>
+        <button id="feedback-close" style="background:none;border:none;color:#555;font-size:1.4rem;cursor:pointer;">&times;</button>
       </div>
-      <input id="fb-name" type="text" placeholder="Name (optional)" style="width:100%;padding:10px 14px;margin-bottom:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;font-family:inherit;font-size:0.95rem;outline:none;">
-      <input id="fb-email" type="email" placeholder="Email (optional)" style="width:100%;padding:10px 14px;margin-bottom:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;font-family:inherit;font-size:0.95rem;outline:none;">
-      <textarea id="fb-text" placeholder="Your feedback..." rows="4" style="width:100%;padding:10px 14px;margin-bottom:16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;font-family:inherit;font-size:0.95rem;outline:none;resize:vertical;"></textarea>
-      <button id="fb-submit" style="width:100%;padding:12px;background:linear-gradient(135deg,#4f8cff,#6c5ce7);border:none;border-radius:10px;color:#fff;font-family:inherit;font-size:1rem;font-weight:700;cursor:pointer;">Submit</button>
-      <div id="fb-status" style="text-align:center;margin-top:12px;font-size:0.9rem;color:#8a8aaf;"></div>
+      <input id="fb-name" type="text" placeholder="Name (optional)" style="width:100%;padding:10px 14px;margin-bottom:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:#fff;font-family:inherit;font-size:0.95rem;outline:none;">
+      <input id="fb-email" type="email" placeholder="Email (optional)" style="width:100%;padding:10px 14px;margin-bottom:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:#fff;font-family:inherit;font-size:0.95rem;outline:none;">
+      <textarea id="fb-text" placeholder="Your feedback..." rows="4" style="width:100%;padding:10px 14px;margin-bottom:16px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:#fff;font-family:inherit;font-size:0.95rem;outline:none;resize:vertical;"></textarea>
+      <button id="fb-submit" style="width:100%;padding:12px;background:linear-gradient(135deg,#ff6b35,#ff2d78);border:none;border-radius:10px;color:#fff;font-family:inherit;font-size:1rem;font-weight:700;cursor:pointer;">Submit</button>
+      <div id="fb-status" style="text-align:center;margin-top:12px;font-size:0.9rem;color:#7a7a9a;"></div>
     </div>
   </div>
 
@@ -487,28 +617,36 @@ footer a { color: #4f8cff; text-decoration: none; }
 (function () {
   "use strict";
 
-  var dropZone = document.getElementById("drop-zone");
+  var addZone = document.getElementById("add-zone");
   var fileInput = document.getElementById("file-input");
-  var fileListEl = document.getElementById("file-list");
-  var analyzeBtn = document.getElementById("analyze-btn");
+  var songListEl = document.getElementById("song-list");
+  var songCountEl = document.getElementById("song-count");
   var spinner = document.getElementById("spinner");
   var errorMsg = document.getElementById("error-msg");
   var resultsEl = document.getElementById("results");
   var vibeInput = document.getElementById("vibe-input");
 
-  var files = [];
+  // Library: array of { file, name, duration, analysis, status }
+  // status: "pending" | "analyzing" | "done" | "error"
+  var library = [];
+  var analyzeQueue = [];
+  var isAnalyzing = false;
+  var selectedIdx = 0;
 
-  // Drag & drop
-  dropZone.addEventListener("dragover", function (e) {
+  var currentAudio = null;
+  var currentPlayBtn = null;
+
+  // --- Drag & drop on add zone ---
+  addZone.addEventListener("dragover", function (e) {
     e.preventDefault();
-    dropZone.classList.add("dragover");
+    addZone.classList.add("dragover");
   });
-  dropZone.addEventListener("dragleave", function () {
-    dropZone.classList.remove("dragover");
+  addZone.addEventListener("dragleave", function () {
+    addZone.classList.remove("dragover");
   });
-  dropZone.addEventListener("drop", function (e) {
+  addZone.addEventListener("drop", function (e) {
     e.preventDefault();
-    dropZone.classList.remove("dragover");
+    addZone.classList.remove("dragover");
     addFiles(e.dataTransfer.files);
   });
   fileInput.addEventListener("change", function () {
@@ -516,39 +654,56 @@ footer a { color: #4f8cff; text-decoration: none; }
     fileInput.value = "";
   });
 
+  function cleanFilename(name) {
+    // Remove extension
+    var dot = name.lastIndexOf(".");
+    if (dot > 0) name = name.substring(0, dot);
+    // Replace hyphens and underscores with spaces
+    name = name.replace(/[-_]/g, " ");
+    // Collapse multiple spaces
+    name = name.replace(/\s+/g, " ").trim();
+    return name;
+  }
+
   function addFiles(newFiles) {
     for (var i = 0; i < newFiles.length; i++) {
-      if (files.length >= 8) break;
+      if (library.length >= 12) break;
       var f = newFiles[i];
       // Avoid duplicates
       var dupe = false;
-      for (var j = 0; j < files.length; j++) {
-        if (files[j].file.name === f.name && files[j].file.size === f.size) {
+      for (var j = 0; j < library.length; j++) {
+        if (library[j].file.name === f.name && library[j].file.size === f.size) {
           dupe = true;
           break;
         }
       }
       if (!dupe) {
-        files.push({ file: f, duration: 0 });
-        readDuration(files.length - 1);
+        var entry = {
+          file: f,
+          name: cleanFilename(f.name),
+          duration: 0,
+          analysis: null,
+          status: "pending"
+        };
+        library.push(entry);
+        readDuration(library.length - 1);
+        queueAnalyze(library.length - 1);
       }
     }
-    renderFiles();
-    updateBtn();
+    renderLibrary();
   }
 
   function readDuration(idx) {
-    var f = files[idx].file;
-    // Try to get duration via Web Audio API
+    var f = library[idx].file;
     if (f.type && f.type.indexOf("audio") === 0) {
       var reader = new FileReader();
       reader.onload = function (e) {
         try {
           var ctx = new (window.AudioContext || window.webkitAudioContext)();
           ctx.decodeAudioData(e.target.result, function (buf) {
-            files[idx].duration = buf.duration;
+            library[idx].duration = buf.duration;
             ctx.close();
-            renderFiles();
+            renderLibrary();
           }, function () {
             ctx.close();
           });
@@ -558,14 +713,12 @@ footer a { color: #4f8cff; text-decoration: none; }
     }
   }
 
-  function removeFile(idx) {
-    files.splice(idx, 1);
-    renderFiles();
-    updateBtn();
+  function removeFromLibrary(idx) {
+    stopCurrentAudio();
+    library.splice(idx, 1);
+    if (selectedIdx >= library.length) selectedIdx = Math.max(0, library.length - 1);
+    renderLibrary();
   }
-
-  var currentAudio = null;
-  var currentPlayBtn = null;
 
   function stopCurrentAudio() {
     if (currentAudio) {
@@ -580,46 +733,109 @@ footer a { color: #4f8cff; text-decoration: none; }
     }
   }
 
-  function renderFiles() {
-    stopCurrentAudio();
+  function renderLibrary() {
     var html = "";
-    for (var i = 0; i < files.length; i++) {
-      var f = files[i];
-      var dur = f.duration > 0 ? formatDuration(f.duration) : "...";
-      var size = formatSize(f.file.size);
-      html +=
-        '<div class="file-item">' +
-        '<button class="file-play" data-idx="' + i + '" title="Play/Pause">&#9654;</button>' +
-        '<div class="file-info">' +
-        '<div class="file-name">' + escapeHtml(f.file.name) + "</div>" +
-        '<div class="file-meta">' + dur + " &middot; " + size + "</div>" +
-        "</div>" +
-        '<button class="file-remove" data-idx="' + i + '" title="Remove">&times;</button>' +
-        "</div>";
-    }
-    fileListEl.innerHTML = html;
+    for (var i = 0; i < library.length; i++) {
+      var s = library[i];
+      var dur = s.duration > 0 ? formatDuration(s.duration) : "...";
+      var size = formatSize(s.file.size);
+      var isSelected = (i === selectedIdx);
 
-    // Bind play buttons
-    var playBtns = fileListEl.querySelectorAll(".file-play");
+      html += '<div class="song-card' + (isSelected ? ' selected' : '') + '" data-idx="' + i + '">';
+      html += '<button class="play-btn" data-idx="' + i + '" title="Play/Pause">&#9654;</button>';
+      html += '<div class="song-info">';
+      html += '<input class="song-name" type="text" value="' + escapeAttr(s.name) + '" data-idx="' + i + '">';
+      html += '<div class="song-meta">' + dur + ' &middot; ' + size + '</div>';
+
+      if (s.status === "done" && s.analysis) {
+        var sa = null;
+        if (s.analysis.songs && s.analysis.songs.length > 0) {
+          sa = s.analysis.songs[0].songAssessment;
+        } else if (s.analysis.songAssessment) {
+          sa = s.analysis.songAssessment;
+        }
+        if (sa) {
+          var parts = [];
+          if (sa.estimatedKey) parts.push(sa.estimatedKey);
+          if (sa.estimatedTempo) parts.push(sa.estimatedTempo);
+          if (sa.present && sa.present.length) parts.push(sa.present.join(', '));
+          if (parts.length) html += '<div class="song-stats">' + escapeHtml(parts.join(' &middot; ')) + '</div>';
+        }
+      }
+
+      html += '</div>';
+      html += '<div class="song-status">';
+      if (s.status === "analyzing") {
+        html += '<div class="mini-spinner"></div>';
+      } else if (s.status === "done") {
+        html += '<div class="status-dot"></div>';
+      }
+      html += '</div>';
+      html += '<button class="song-remove" data-idx="' + i + '" title="Remove">&times;</button>';
+      html += '</div>';
+    }
+    songListEl.innerHTML = html;
+
+    // Update count
+    var countText = library.length + (library.length === 1 ? " track" : " tracks");
+    var doneCount = 0;
+    for (var d = 0; d < library.length; d++) {
+      if (library[d].status === "done") doneCount++;
+    }
+    if (doneCount > 0 && doneCount < library.length) {
+      countText += " (" + doneCount + " analyzed)";
+    }
+    songCountEl.textContent = countText;
+
+    // Show generate button if any song is analyzed
+    var generateBtn = document.getElementById("generate-btn");
+    if (doneCount > 0) {
+      generateBtn.style.display = "block";
+    } else {
+      generateBtn.style.display = "none";
+    }
+
+    // Bind events
+    var playBtns = songListEl.querySelectorAll(".play-btn");
     for (var p = 0; p < playBtns.length; p++) {
-      playBtns[p].addEventListener("click", function () {
+      playBtns[p].addEventListener("click", function (e) {
+        e.stopPropagation();
         var idx = parseInt(this.getAttribute("data-idx"), 10);
         togglePlay(idx, this);
       });
     }
 
-    // Bind remove buttons
-    var btns = fileListEl.querySelectorAll(".file-remove");
-    for (var b = 0; b < btns.length; b++) {
-      btns[b].addEventListener("click", function () {
-        stopCurrentAudio();
-        removeFile(parseInt(this.getAttribute("data-idx"), 10));
+    var removeBtns = songListEl.querySelectorAll(".song-remove");
+    for (var r = 0; r < removeBtns.length; r++) {
+      removeBtns[r].addEventListener("click", function (e) {
+        e.stopPropagation();
+        removeFromLibrary(parseInt(this.getAttribute("data-idx"), 10));
+      });
+    }
+
+    var nameInputs = songListEl.querySelectorAll(".song-name");
+    for (var n = 0; n < nameInputs.length; n++) {
+      nameInputs[n].addEventListener("change", function () {
+        var idx = parseInt(this.getAttribute("data-idx"), 10);
+        library[idx].name = this.value;
+      });
+      nameInputs[n].addEventListener("keydown", function (e) {
+        if (e.key === "Enter") this.blur();
+      });
+    }
+
+    // Click card to select
+    var cards = songListEl.querySelectorAll(".song-card");
+    for (var c = 0; c < cards.length; c++) {
+      cards[c].addEventListener("click", function () {
+        var idx = parseInt(this.getAttribute("data-idx"), 10);
+        selectedIdx = idx;
+        renderLibrary();
       });
     }
   }
 
   function togglePlay(idx, btn) {
-    // If clicking the same file that's playing, pause it
     if (currentPlayBtn === btn && currentAudio && !currentAudio.paused) {
       currentAudio.pause();
       btn.classList.remove("playing");
@@ -627,11 +843,9 @@ footer a { color: #4f8cff; text-decoration: none; }
       return;
     }
 
-    // Stop whatever is playing
     stopCurrentAudio();
 
-    // Create object URL and play
-    var f = files[idx].file;
+    var f = library[idx].file;
     var url = URL.createObjectURL(f);
     var audio = new Audio(url);
     audio.addEventListener("ended", function () {
@@ -648,49 +862,42 @@ footer a { color: #4f8cff; text-decoration: none; }
     currentPlayBtn = btn;
   }
 
-  function generateBars() {
-    var html = "";
-    for (var i = 0; i < 12; i++) {
-      var h = Math.floor(Math.random() * 20) + 6;
-      var d = (Math.random() * 0.6).toFixed(2);
-      html += '<div class="bar" style="height:' + h + "px;animation-delay:" + d + 's"></div>';
+  // --- Auto-analyze queue (one at a time) ---
+  function queueAnalyze(idx) {
+    analyzeQueue.push(idx);
+    processQueue();
+  }
+
+  function processQueue() {
+    if (isAnalyzing || analyzeQueue.length === 0) return;
+    isAnalyzing = true;
+    var idx = analyzeQueue.shift();
+
+    // Skip if removed
+    if (idx >= library.length) {
+      isAnalyzing = false;
+      processQueue();
+      return;
     }
-    return html;
-  }
 
-  function updateBtn() {
-    analyzeBtn.disabled = files.length < 1;
-  }
+    library[idx].status = "analyzing";
+    renderLibrary();
 
-  // Analyze
-  analyzeBtn.addEventListener("click", function () {
-    if (files.length < 1) return;
-    doAnalyze();
-  });
-
-  function doAnalyze() {
-    analyzeBtn.disabled = true;
-    spinner.classList.add("active");
-    errorMsg.classList.remove("active");
-    resultsEl.classList.remove("active");
-    resultsEl.style.display = "none";
-
+    var entry = library[idx];
     var payload = {
-      files: files.map(function (f) {
-        return {
-          name: f.file.name,
-          size: f.file.size,
-          type: f.file.type,
-          duration: f.duration || 0,
-        };
-      }),
-      description: vibeInput.value.trim(),
+      files: [{
+        name: entry.file.name,
+        size: entry.file.size,
+        type: entry.file.type,
+        duration: entry.duration || 0
+      }],
+      description: vibeInput.value.trim()
     };
 
     fetch("/api/analyze", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(payload)
     })
       .then(function (res) {
         return res.json().then(function (data) {
@@ -699,220 +906,41 @@ footer a { color: #4f8cff; text-decoration: none; }
         });
       })
       .then(function (data) {
-        spinner.classList.remove("active");
-        analyzeBtn.disabled = false;
-        renderResults(data.analysis);
+        if (idx < library.length) {
+          library[idx].analysis = data.analysis;
+          library[idx].status = "done";
+        }
+        renderLibrary();
+        isAnalyzing = false;
+        processQueue();
       })
       .catch(function (err) {
-        spinner.classList.remove("active");
-        analyzeBtn.disabled = false;
-        errorMsg.textContent = err.message || "Something went wrong.";
-        errorMsg.classList.add("active");
+        if (idx < library.length) {
+          library[idx].status = "error";
+        }
+        renderLibrary();
+        isAnalyzing = false;
+        processQueue();
       });
   }
 
-  function renderResults(a) {
-    // Multi-song format: if songs array, render each song separately
-    if (a.songs && a.songs.length) {
-      var allHtml = "";
-      a.songs.forEach(function(song, idx) {
-        allHtml += '<div class="card" style="border-left:3px solid #4f8cff;margin-bottom:24px;">';
-        allHtml += '<div class="section-title"><span class="icon">&#127925;</span> Song ' + (idx+1) + ': ' + escapeHtml(song.filename || '') + '</div>';
-        
-        // File analysis
-        var fa = song.fileAnalysis || {};
-        allHtml += '<div class="analysis-item"><div class="a-name">' + escapeHtml(fa.instrument || '') + '</div><div class="a-instrument">' + escapeHtml(fa.role || '') + '</div><div class="a-role">' + escapeHtml(fa.notes || '') + '</div></div>';
-        
-        // Assessment
-        var sa = song.songAssessment || {};
-        allHtml += '<div class="assessment-grid" style="margin:12px 0;">';
-        allHtml += '<div class="assess-card"><div class="label">Key</div><div class="value">' + escapeHtml(sa.estimatedKey || '?') + '</div></div>';
-        allHtml += '<div class="assess-card"><div class="label">Tempo</div><div class="value">' + escapeHtml(sa.estimatedTempo || '?') + '</div></div>';
-        allHtml += '<div class="assess-card"><div class="label">Present</div><div class="value">';
-        (sa.present || []).forEach(function(p) { allHtml += '<span class="tag tag-present">' + escapeHtml(p) + '</span>'; });
-        allHtml += '</div></div>';
-        allHtml += '<div class="assess-card"><div class="label">Missing</div><div class="value">';
-        (sa.missing || []).forEach(function(m) { allHtml += '<span class="tag tag-missing">' + escapeHtml(m) + '</span>'; });
-        allHtml += '</div></div></div>';
-        
-        // Production plan
-        var pp = song.productionPlan || {};
-        (pp.sections || []).forEach(function(sec) {
-          allHtml += '<div class="plan-section"><div class="ps-header"><span class="ps-name">' + escapeHtml(sec.name || '') + '</span><span class="ps-bars">' + (sec.bars || '?') + ' bars</span></div>';
-          allHtml += '<div class="ps-desc">' + escapeHtml(sec.description || '') + '</div>';
-          if (sec.toGenerate) allHtml += '<div class="ps-gen"><span>Generate:</span> ' + escapeHtml(sec.toGenerate.join(', ')) + '</div>';
-          allHtml += '</div>';
-        });
-        if (pp.productionNotes) allHtml += '<div class="plan-notes"><strong>Production:</strong> ' + escapeHtml(pp.productionNotes) + '</div>';
-        
-        // Summary
-        if (song.summary) allHtml += '<div class="summary-text" style="margin-top:12px;">' + escapeHtml(song.summary) + '</div>';
-        
-        allHtml += '</div>';
-      });
-      
-      document.getElementById("analysis-grid").innerHTML = "";
-      document.getElementById("assessment-grid").innerHTML = "";
-      document.getElementById("plan-sections").innerHTML = "";
-      document.getElementById("plan-notes").innerHTML = "";
-      document.getElementById("summary-text").textContent = "";
-      document.getElementById("res-analysis").innerHTML = allHtml;
-      document.getElementById("res-assessment").style.display = "none";
-      document.getElementById("res-plan").style.display = "none";
-      document.getElementById("res-summary").style.display = "none";
-      resultsEl.style.display = "block";
-      resultsEl.classList.add("active");
-      resultsEl.scrollIntoView({ behavior: "smooth", block: "start" });
-      return;
-    }
-    // If raw text, show as-is
-    if (a.raw) {
-      document.getElementById("analysis-grid").innerHTML =
-        '<div style="white-space:pre-wrap;color:#ccc;">' + escapeHtml(a.raw) + "</div>";
-      document.getElementById("assessment-grid").innerHTML = "";
-      document.getElementById("plan-sections").innerHTML = "";
-      document.getElementById("plan-notes").innerHTML = "";
-      document.getElementById("summary-text").textContent = "";
-      resultsEl.style.display = "block";
-      resultsEl.classList.add("active");
-      return;
-    }
-
-    // File Analysis
-    var faHtml = "";
-    var fa = a.fileAnalysis || [];
-    for (var i = 0; i < fa.length; i++) {
-      faHtml +=
-        '<div class="analysis-item">' +
-        '<div class="a-name">' + escapeHtml(fa[i].filename || "") + "</div>" +
-        '<div class="a-instrument">' + escapeHtml(fa[i].instrument || "") + "</div>" +
-        '<div class="a-role">' + escapeHtml(fa[i].role || "") +
-        (fa[i].notes ? " — " + escapeHtml(fa[i].notes) : "") +
-        "</div></div>";
-    }
-    document.getElementById("analysis-grid").innerHTML = faHtml;
-
-    // Song Assessment
-    var sa = a.songAssessment || {};
-    var agHtml = "";
-    agHtml +=
-      '<div class="assess-card"><div class="label">Estimated Key</div><div class="value">' +
-      escapeHtml(sa.estimatedKey || "Unknown") + "</div></div>";
-    agHtml +=
-      '<div class="assess-card"><div class="label">Estimated Tempo</div><div class="value">' +
-      escapeHtml(sa.estimatedTempo || "Unknown") + "</div></div>";
-
-    agHtml += '<div class="assess-card"><div class="label">Present</div><div class="value">';
-    var present = sa.present || [];
-    for (var p = 0; p < present.length; p++) {
-      agHtml += '<span class="tag tag-present">' + escapeHtml(present[p]) + "</span>";
-    }
-    agHtml += "</div></div>";
-
-    agHtml += '<div class="assess-card"><div class="label">Missing</div><div class="value">';
-    var missing = sa.missing || [];
-    for (var m = 0; m < missing.length; m++) {
-      agHtml += '<span class="tag tag-missing">' + escapeHtml(missing[m]) + "</span>";
-    }
-    agHtml += "</div></div>";
-
-    if (sa.structureGaps && sa.structureGaps.length) {
-      agHtml +=
-        '<div class="assess-card" style="grid-column:1/-1"><div class="label">Structure Gaps</div><div class="value">';
-      for (var g = 0; g < sa.structureGaps.length; g++) {
-        agHtml += '<span class="tag tag-gap">' + escapeHtml(sa.structureGaps[g]) + "</span>";
-      }
-      agHtml += "</div></div>";
-    }
-    document.getElementById("assessment-grid").innerHTML = agHtml;
-
-    // Production Plan
-    var pp = a.productionPlan || {};
-    var sections = pp.sections || [];
-    var psHtml = "";
-    for (var s = 0; s < sections.length; s++) {
-      var sec = sections[s];
-      psHtml += '<div class="plan-section">';
-      psHtml +=
-        '<div class="ps-header"><span class="ps-name">' +
-        escapeHtml(sec.name || "") +
-        '</span><span class="ps-bars">' +
-        (sec.bars || "?") + " bars</span></div>";
-      psHtml += '<div class="ps-desc">' + escapeHtml(sec.description || "") + "</div>";
-      if (sec.userFiles && sec.userFiles.length) {
-        psHtml +=
-          '<div class="ps-files"><span>Your files:</span> ' +
-          escapeHtml(sec.userFiles.join(", ")) + "</div>";
-      }
-      if (sec.toGenerate && sec.toGenerate.length) {
-        psHtml +=
-          '<div class="ps-gen"><span>To generate:</span> ' +
-          escapeHtml(sec.toGenerate.join(", ")) + "</div>";
-      }
-      psHtml += "</div>";
-    }
-    document.getElementById("plan-sections").innerHTML = psHtml;
-
-    var notes = "";
-    if (pp.productionNotes) notes += "<strong>Production Notes:</strong>\n" + escapeHtml(pp.productionNotes);
-    if (pp.mixingNotes) notes += (notes ? "\n\n" : "") + "<strong>Mixing Notes:</strong>\n" + escapeHtml(pp.mixingNotes);
-    document.getElementById("plan-notes").innerHTML = notes;
-
-    // Summary
-    document.getElementById("summary-text").textContent = a.summary || "";
-
-    resultsEl.style.display = "block";
-    resultsEl.classList.add("active");
-    resultsEl.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
-  function formatDuration(s) {
-    var m = Math.floor(s / 60);
-    var sec = Math.round(s % 60);
-    if (m > 0) return m + ":" + (sec < 10 ? "0" : "") + sec;
-    return sec + "s";
-  }
-
-  function formatSize(bytes) {
-    if (bytes < 1024) return bytes + " B";
-    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
-    return (bytes / 1048576).toFixed(1) + " MB";
-  }
-
-  function escapeHtml(str) {
-    var div = document.createElement("div");
-    div.appendChild(document.createTextNode(str));
-    return div.innerHTML;
-  }
-
-  // --- Generate Intro & Outro ---
+  // --- Generate ---
   var generateBtn = document.getElementById("generate-btn");
   var genProgress = document.getElementById("gen-progress");
   var genStatus = document.getElementById("gen-status");
   var genSubstatus = document.getElementById("gen-substatus");
   var genError = document.getElementById("gen-error");
   var genResults = document.getElementById("gen-results");
-  var lastAnalysis = null;
 
-  // Store analysis results when rendering so generate can use them
-  var origRenderResults = renderResults;
-  renderResults = function(a) {
-    lastAnalysis = a;
-    origRenderResults(a);
-    // Show generate button after analysis
-    generateBtn.style.display = "block";
-    // Reset generation UI
-    genProgress.classList.remove("active");
-    genError.classList.remove("active");
-    genResults.classList.remove("active");
-  };
-
-  generateBtn.addEventListener("click", function() {
-    if (files.length < 1) return;
-    doGenerate();
+  generateBtn.addEventListener("click", function () {
+    // Use selected song, fallback to first
+    var idx = selectedIdx;
+    if (idx >= library.length) idx = 0;
+    if (library.length < 1) return;
+    doGenerate(idx);
   });
 
-  function doGenerate() {
+  function doGenerate(idx) {
     generateBtn.disabled = true;
     genProgress.classList.add("active");
     genError.classList.remove("active");
@@ -920,10 +948,10 @@ footer a { color: #4f8cff; text-decoration: none; }
     genStatus.textContent = "Preparing audio for generation...";
     genSubstatus.textContent = "Reading your audio file...";
 
-    // Use the first uploaded file for MusicGen input
-    var firstFile = files[0].file;
+    var entry = library[idx];
+    var firstFile = entry.file;
     var reader = new FileReader();
-    reader.onload = function(e) {
+    reader.onload = function (e) {
       var arrayBuffer = e.target.result;
       var bytes = new Uint8Array(arrayBuffer);
       var binary = "";
@@ -932,24 +960,23 @@ footer a { color: #4f8cff; text-decoration: none; }
       }
       var base64 = btoa(binary);
 
-      // Build analysis info from lastAnalysis
       var analysis = {};
-      if (lastAnalysis) {
-        if (lastAnalysis.songs && lastAnalysis.songs.length > 0) {
-          var song = lastAnalysis.songs[0];
-          var sa = song.songAssessment || {};
+      var a = entry.analysis;
+      if (a) {
+        if (a.songs && a.songs.length > 0) {
+          var sa = a.songs[0].songAssessment || {};
           analysis = {
             estimatedKey: sa.estimatedKey || "",
             estimatedTempo: sa.estimatedTempo || "",
             present: sa.present || [],
             missing: sa.missing || []
           };
-        } else if (lastAnalysis.songAssessment) {
+        } else if (a.songAssessment) {
           analysis = {
-            estimatedKey: lastAnalysis.songAssessment.estimatedKey || "",
-            estimatedTempo: lastAnalysis.songAssessment.estimatedTempo || "",
-            present: lastAnalysis.songAssessment.present || [],
-            missing: lastAnalysis.songAssessment.missing || []
+            estimatedKey: a.songAssessment.estimatedKey || "",
+            estimatedTempo: a.songAssessment.estimatedTempo || "",
+            present: a.songAssessment.present || [],
+            missing: a.songAssessment.missing || []
           };
         }
       }
@@ -967,25 +994,25 @@ footer a { color: #4f8cff; text-decoration: none; }
           vibe: vibeInput.value.trim()
         })
       })
-        .then(function(res) {
-          return res.json().then(function(data) {
+        .then(function (res) {
+          return res.json().then(function (data) {
             if (!res.ok) throw new Error(data.error || "Generation failed");
             return data;
           });
         })
-        .then(function(data) {
+        .then(function (data) {
           genProgress.classList.remove("active");
           generateBtn.disabled = false;
           showGenResults(data);
         })
-        .catch(function(err) {
+        .catch(function (err) {
           genProgress.classList.remove("active");
           generateBtn.disabled = false;
           genError.textContent = err.message || "Generation failed. Please try again.";
           genError.classList.add("active");
         });
     };
-    reader.onerror = function() {
+    reader.onerror = function () {
       genProgress.classList.remove("active");
       generateBtn.disabled = false;
       genError.textContent = "Failed to read audio file.";
@@ -1005,21 +1032,70 @@ footer a { color: #4f8cff; text-decoration: none; }
     var outroDownload = document.getElementById("outro-download");
 
     if (data.intro && data.intro.url) {
-      var introUrl = typeof data.intro.url === "string" ? data.intro.url : data.intro.url;
-      introAudio.src = introUrl;
-      introDownload.href = introUrl;
+      introAudio.src = data.intro.url;
+      introDownload.href = data.intro.url;
       introCard.style.display = "block";
     }
 
     if (data.outro && data.outro.url) {
-      var outroUrl = typeof data.outro.url === "string" ? data.outro.url : data.outro.url;
-      outroAudio.src = outroUrl;
-      outroDownload.href = outroUrl;
+      outroAudio.src = data.outro.url;
+      outroDownload.href = data.outro.url;
       outroCard.style.display = "block";
     }
 
     genResults.scrollIntoView({ behavior: "smooth", block: "start" });
   }
+
+  // --- Helpers ---
+  function formatDuration(s) {
+    var m = Math.floor(s / 60);
+    var sec = Math.round(s % 60);
+    if (m > 0) return m + ":" + (sec < 10 ? "0" : "") + sec;
+    return sec + "s";
+  }
+
+  function formatSize(bytes) {
+    if (bytes < 1024) return bytes + " B";
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + " KB";
+    return (bytes / 1048576).toFixed(1) + " MB";
+  }
+
+  function escapeHtml(str) {
+    var div = document.createElement("div");
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+  }
+
+  function escapeAttr(str) {
+    return str.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  // --- Load 3 sample songs on page open ---
+  function loadSamples() {
+    var sampleFiles = [
+      { url: "/samples/song1-F-C-Em-G-sad.m4a", name: "song1-F-C-Em-G-sad.m4a" },
+      { url: "/samples/song2-D-Am-C-G.m4a", name: "song2-D-Am-C-G.m4a" },
+      { url: "/samples/song3-G-Am-G-Em.m4a", name: "song3-G-Am-G-Em.m4a" }
+    ];
+
+    var loaded = 0;
+    sampleFiles.forEach(function (sf) {
+      fetch(sf.url)
+        .then(function (r) { return r.blob(); })
+        .then(function (blob) {
+          var file = new File([blob], sf.name, { type: "audio/x-m4a" });
+          var dt = new DataTransfer();
+          dt.items.add(file);
+          // Add via the addFiles path
+          addFiles(dt.files);
+        })
+        .catch(function () {
+          // Silently skip failed samples
+        });
+    });
+  }
+
+  loadSamples();
 })();
 </script>
 <script>
@@ -1055,7 +1131,7 @@ footer a { color: #4f8cff; text-decoration: none; }
       return;
     }
     submitBtn.disabled = true;
-    statusEl.style.color = "#8a8aaf";
+    statusEl.style.color = "#7a7a9a";
     statusEl.textContent = "Sending...";
 
     fetch("/api/feedback", {
@@ -1091,37 +1167,3 @@ footer a { color: #4f8cff; text-decoration: none; }
 </script>
 </body>
 </html>
-<script>
-(function() {
-  var sampleBtn = document.getElementById("sample-btn");
-  if (!sampleBtn) return;
-  sampleBtn.addEventListener("click", function() {
-    sampleBtn.disabled = true;
-    sampleBtn.textContent = "Loading samples...";
-    var sampleFiles = [
-      { url: "/samples/song1-F-C-Em-G-sad.m4a", name: "F-C-Em-G_sad.m4a" },
-      { url: "/samples/song2-D-Am-C-G.m4a", name: "D-Am-C-G_D-Am-C-Em.m4a" },
-      { url: "/samples/song3-G-Am-G-Em.m4a", name: "G-Am_G-Em.m4a" }
-    ];
-    Promise.all(sampleFiles.map(function(sf) {
-      return fetch(sf.url).then(function(r) { return r.blob(); }).then(function(blob) {
-        return new File([blob], sf.name, { type: "audio/x-m4a" });
-      });
-    })).then(function(fileList) {
-      // Trigger the existing addFiles function by dispatching to the file input
-      var dt = new DataTransfer();
-      fileList.forEach(function(f) { dt.items.add(f); });
-      var fileInput = document.getElementById("file-input");
-      fileInput.files = dt.files;
-      fileInput.dispatchEvent(new Event("change"));
-      sampleBtn.textContent = "✓ Samples loaded — click Analyze & Complete";
-      sampleBtn.disabled = false;
-      // Also set the vibe
-      document.getElementById("vibe-input").value = "melancholic indie, acoustic, emotional";
-    }).catch(function(err) {
-      sampleBtn.textContent = "Failed to load samples";
-      sampleBtn.disabled = false;
-    });
-  });
-})();
-</script>
