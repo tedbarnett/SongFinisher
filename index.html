@@ -654,6 +654,26 @@ footer a:hover { text-decoration: underline; }
     fileInput.value = "";
   });
 
+  // --- Persist song names in localStorage ---
+  function saveSongNames() {
+    try {
+      var names = {};
+      for (var i = 0; i < library.length; i++) {
+        var key = library[i].file.name + ":" + library[i].file.size;
+        names[key] = library[i].name;
+      }
+      localStorage.setItem("sf_song_names", JSON.stringify(names));
+    } catch(e) { /* localStorage unavailable */ }
+  }
+
+  function getSavedName(file) {
+    try {
+      var names = JSON.parse(localStorage.getItem("sf_song_names") || "{}");
+      var key = file.name + ":" + file.size;
+      return names[key] || null;
+    } catch(e) { return null; }
+  }
+
   function cleanFilename(name) {
     // Remove extension
     var dot = name.lastIndexOf(".");
@@ -680,7 +700,7 @@ footer a:hover { text-decoration: underline; }
       if (!dupe) {
         var entry = {
           file: f,
-          name: cleanFilename(f.name),
+          name: getSavedName(f) || cleanFilename(f.name),
           duration: 0,
           analysis: null,
           status: "pending"
@@ -818,6 +838,7 @@ footer a:hover { text-decoration: underline; }
       nameInputs[n].addEventListener("change", function () {
         var idx = parseInt(this.getAttribute("data-idx"), 10);
         library[idx].name = this.value;
+        saveSongNames();
       });
       nameInputs[n].addEventListener("keydown", function (e) {
         if (e.key === "Enter") this.blur();
