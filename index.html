@@ -1320,7 +1320,9 @@ footer a:hover { text-decoration: underline; }
   tPlay.addEventListener("click", function () {
     if (transportAudio && transportAudio.paused) {
       resumeTransport();
-    } else if (!transportAudio) {
+    } else if (transportAudio && !transportAudio.paused) {
+      // Already playing, do nothing
+    } else {
       playFromPlayhead();
     }
   });
@@ -1328,6 +1330,10 @@ footer a:hover { text-decoration: underline; }
   tPause.addEventListener("click", function () {
     if (transportAudio && !transportAudio.paused) {
       pauseTransport();
+      // Store position so play resumes from here
+      if (transportAudio && transportAudio.duration > 0) {
+        playheadSeekFraction = transportAudio.currentTime / transportAudio.duration;
+      }
     }
   });
 
