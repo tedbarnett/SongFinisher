@@ -583,6 +583,68 @@ footer a { color: #ff6b35; text-decoration: none; }
 footer a:hover { text-decoration: underline; }
 
 /* Feedback button */
+/* How it works button */
+.how-btn {
+  margin-top: 16px;
+  background: none;
+  border: 1px solid rgba(255,107,53,0.25);
+  color: #ff6b35; font-family: inherit; font-size: 0.9rem;
+  padding: 8px 22px; border-radius: 10px; cursor: pointer;
+  transition: all 0.2s;
+}
+.how-btn:hover {
+  border-color: rgba(255,107,53,0.5);
+  background: rgba(255,107,53,0.06);
+  box-shadow: 0 0 12px rgba(255,107,53,0.1);
+}
+
+/* How modal */
+.how-overlay {
+  display: none; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7); z-index: 100;
+}
+.how-overlay.active { display: block; }
+
+.how-modal {
+  background: rgba(13,13,20,0.97);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px; padding: 32px;
+  max-width: 520px; width: 90%;
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  max-height: 80vh; overflow-y: auto;
+}
+
+.how-modal h3 {
+  font-size: 1.3rem; font-weight: 800; color: #fff;
+  margin-bottom: 20px;
+}
+
+.how-modal .how-step {
+  display: flex; gap: 14px; margin-bottom: 18px; align-items: flex-start;
+}
+
+.how-modal .step-num {
+  flex-shrink: 0; width: 28px; height: 28px;
+  background: rgba(255,107,53,0.15); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem; font-weight: 700; color: #ff6b35;
+}
+
+.how-modal .step-text {
+  font-size: 0.95rem; color: #ccc; line-height: 1.5;
+}
+
+.how-modal .step-text strong { color: #fff; }
+
+.how-modal .how-close {
+  background: none; border: none; color: #555;
+  font-size: 1.4rem; cursor: pointer;
+  position: absolute; top: 16px; right: 20px;
+}
+.how-modal .how-close:hover { color: #fff; }
+
 .feedback-btn {
   background: none;
   border: 1px solid rgba(255,107,53,0.2);
@@ -619,6 +681,7 @@ footer a:hover { text-decoration: underline; }
   <header>
     <h1>Song<span>Maker</span></h1>
     <p class="subtitle">Drop in your rough tracks. I can take it from there.</p>
+    <button class="how-btn" id="how-btn">How does this work?</button>
   </header>
 
   <!-- Waveform Workspace -->
@@ -725,6 +788,39 @@ footer a:hover { text-decoration: underline; }
       <textarea id="fb-text" placeholder="Your feedback..." rows="4" style="width:100%;padding:10px 14px;margin-bottom:16px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;color:#fff;font-family:inherit;font-size:0.95rem;outline:none;resize:vertical;"></textarea>
       <button id="fb-submit" style="width:100%;padding:12px;background:linear-gradient(135deg,#ff6b35,#ff2d78);border:none;border-radius:10px;color:#fff;font-family:inherit;font-size:1rem;font-weight:700;cursor:pointer;">Submit</button>
       <div id="fb-status" style="text-align:center;margin-top:12px;font-size:0.9rem;color:#7a7a9a;"></div>
+    </div>
+  </div>
+
+  <!-- How It Works Modal -->
+  <div class="how-overlay" id="how-overlay">
+    <div class="how-modal">
+      <button class="how-close" id="how-close">&times;</button>
+      <h3>How does SongMaker work?</h3>
+
+      <div class="how-step">
+        <div class="step-num">1</div>
+        <div class="step-text"><strong>Upload your track.</strong> Drop in an MP3, WAV, M4A, or other audio file — even a rough phone recording of you humming a melody or playing a few chords.</div>
+      </div>
+
+      <div class="how-step">
+        <div class="step-num">2</div>
+        <div class="step-text"><strong>We analyze it.</strong> SongMaker detects the key, tempo, and instruments in your track automatically.</div>
+      </div>
+
+      <div class="how-step">
+        <div class="step-num">3</div>
+        <div class="step-text"><strong>Describe the vibe.</strong> Optionally type a description — "dreamy indie," "upbeat funk," "dark electronic ballad" — to steer the AI.</div>
+      </div>
+
+      <div class="how-step">
+        <div class="step-num">4</div>
+        <div class="step-text"><strong>Generate an intro or outro.</strong> Click the Intro or Outro zone in the workspace. AI generates music that matches your track's key and tempo.</div>
+      </div>
+
+      <div class="how-step">
+        <div class="step-num">5</div>
+        <div class="step-text"><strong>Preview and download.</strong> Play the full arrangement in the workspace, then download individual parts or the complete song as a WAV file.</div>
+      </div>
     </div>
   </div>
 
@@ -1866,6 +1962,21 @@ footer a:hover { text-decoration: underline; }
   }
 
   loadSamples();
+
+  // How it works modal
+  var howBtn = document.getElementById("how-btn");
+  var howOverlay = document.getElementById("how-overlay");
+  var howClose = document.getElementById("how-close");
+
+  howBtn.addEventListener("click", function () {
+    howOverlay.classList.add("active");
+  });
+  howClose.addEventListener("click", function () {
+    howOverlay.classList.remove("active");
+  });
+  howOverlay.addEventListener("click", function (e) {
+    if (e.target === howOverlay) howOverlay.classList.remove("active");
+  });
 })();
 </script>
 <script>
