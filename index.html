@@ -568,7 +568,7 @@ footer a:hover { text-decoration: underline; }
       <div class="workspace-song-name" id="workspace-song-name"></div>
     </div>
 
-    <div class="waveform-timeline" id="waveform-timeline">
+    <div class="waveform-timeline" id="waveform-timeline" style="position:relative;">
       <div class="waveform-zone zone-intro" id="zone-intro">
         <canvas id="canvas-intro"></canvas>
         <div class="zone-empty" id="zone-intro-empty">
@@ -578,7 +578,6 @@ footer a:hover { text-decoration: underline; }
       </div>
       <div class="waveform-zone zone-song" id="zone-song">
         <canvas id="canvas-song"></canvas>
-        <div class="playhead" id="playhead"></div>
       </div>
       <div class="waveform-zone zone-outro" id="zone-outro">
         <canvas id="canvas-outro"></canvas>
@@ -587,6 +586,7 @@ footer a:hover { text-decoration: underline; }
           <div class="zone-sublabel">awaiting generation</div>
         </div>
       </div>
+      <div class="playhead" id="playhead"></div>
     </div>
 
     <!-- Transport -->
