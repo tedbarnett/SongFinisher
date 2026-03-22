@@ -340,9 +340,9 @@ h1 span {
   border-left: 1px solid rgba(255,255,255,0.06);
 }
 
-/* Empty zone placeholder */
+/* Empty zone placeholder — clickable */
 .zone-empty {
-  border: 2px dashed rgba(255,255,255,0.08);
+  border: 2px dashed rgba(255,255,255,0.1);
   border-radius: 4px;
   position: absolute;
   top: 8px; left: 8px; right: 8px; bottom: 8px;
@@ -351,19 +351,45 @@ h1 span {
   justify-content: center;
   flex-direction: column;
   gap: 4px;
-  pointer-events: none;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+
+.zone-empty:hover {
+  border-color: rgba(255,107,53,0.4);
+  background: rgba(255,107,53,0.04);
 }
 
 .zone-empty.hidden { display: none; }
 
 .zone-label {
   font-size: 0.7rem; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 1.5px; color: rgba(255,255,255,0.15);
+  letter-spacing: 1.5px; color: rgba(255,255,255,0.2);
 }
 
 .zone-sublabel {
-  font-size: 0.6rem; color: rgba(255,255,255,0.08);
+  font-size: 0.6rem; color: rgba(255,255,255,0.1);
 }
+
+.zone-empty .zone-click-hint {
+  font-size: 0.6rem; color: rgba(255,107,53,0.5);
+  margin-top: 2px;
+}
+
+/* Progress timer in zone */
+.zone-progress {
+  position: absolute;
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #ff6b35;
+  letter-spacing: 0.5px;
+  display: none;
+}
+
+.zone-generating .zone-progress { display: block; }
 
 /* Shimmer animation for generating state */
 .zone-generating .zone-empty {
@@ -573,8 +599,9 @@ footer a:hover { text-decoration: underline; }
         <canvas id="canvas-intro"></canvas>
         <div class="zone-empty" id="zone-intro-empty">
           <div class="zone-label">Intro</div>
-          <div class="zone-sublabel">awaiting generation</div>
+          <div class="zone-sublabel">click to generate</div>
         </div>
+        <div class="zone-progress" id="intro-progress">0:00</div>
       </div>
       <div class="waveform-zone zone-song" id="zone-song">
         <canvas id="canvas-song"></canvas>
@@ -583,8 +610,9 @@ footer a:hover { text-decoration: underline; }
         <canvas id="canvas-outro"></canvas>
         <div class="zone-empty" id="zone-outro-empty">
           <div class="zone-label">Outro</div>
-          <div class="zone-sublabel">awaiting generation</div>
+          <div class="zone-sublabel">click to generate</div>
         </div>
+        <div class="zone-progress" id="outro-progress">0:00</div>
       </div>
       <div class="playhead" id="playhead"></div>
     </div>
@@ -1541,24 +1569,96 @@ footer a:hover { text-decoration: underline; }
   }
 
   // --- Generate (Finish Song) ---
+  // --- Progress timers ---
+  var introTimer = null;
+  var outroTimer = null;
+  var introProgressEl = document.getElementById("intro-progress");
+  var outroProgressEl = document.getElementById("outro-progress");
+
+  function startProgressTimer(el) {
+    var startTime = Date.now();
+    el.textContent = "0:00";
+    return setInterval(function () {
+      var elapsed = Math.floor((Date.now() - startTime) / 1000);
+      var m = Math.floor(elapsed / 60);
+      var s = elapsed % 60;
+      el.textContent = m + ":" + (s < 10 ? "0" : "") + s;
+    }, 1000);
+  }
+
+  // --- Click zones to generate individually ---
+  zoneIntroEmpty.addEventListener("click", function (e) {
+    e.stopPropagation();
+    if (selectedIdx < 0 || selectedIdx >= library.length) return;
+    if (library[selectedIdx].status !== "done") return;
+    if (zoneIntro.classList.contains("zone-generating")) return;
+    doGeneratePart("intro");
+  });
+
+  zoneOutroEmpty.addEventListener("click", function (e) {
+    e.stopPropagation();
+    if (selectedIdx < 0 || selectedIdx >= library.length) return;
+    if (library[selectedIdx].status !== "done") return;
+    if (zoneOutro.classList.contains("zone-generating")) return;
+    doGeneratePart("outro");
+  });
+
+  // Finish button generates both
   finishBtn.addEventListener("click", function () {
     if (selectedIdx < 0 || selectedIdx >= library.length) return;
     if (library[selectedIdx].status !== "done") return;
-    doGenerate(selectedIdx);
+    doGeneratePart("both");
   });
 
-  function doGenerate(idx) {
-    finishBtn.disabled = true;
-    finishBtn.classList.add("generating");
+  function getAnalysisForEntry(entry) {
+    var analysis = {};
+    var a = entry.analysis;
+    if (a) {
+      if (a.songs && a.songs.length > 0) {
+        var sa = a.songs[0].songAssessment || {};
+        analysis = {
+          estimatedKey: sa.estimatedKey || "",
+          estimatedTempo: sa.estimatedTempo || "",
+          present: sa.present || [],
+          missing: sa.missing || []
+        };
+      } else if (a.songAssessment) {
+        analysis = {
+          estimatedKey: a.songAssessment.estimatedKey || "",
+          estimatedTempo: a.songAssessment.estimatedTempo || "",
+          present: a.songAssessment.present || [],
+          missing: a.songAssessment.missing || []
+        };
+      }
+    }
+    return analysis;
+  }
+
+  function doGeneratePart(part) {
+    var idx = selectedIdx;
+    var entry = library[idx];
     genError.classList.remove("active");
 
-    // Show generating shimmer on zones
-    zoneIntro.classList.add("zone-generating");
-    zoneOutro.classList.add("zone-generating");
-    zoneIntroEmpty.querySelector(".zone-sublabel").textContent = "generating...";
-    zoneOutroEmpty.querySelector(".zone-sublabel").textContent = "generating...";
+    // Set up UI for which parts are generating
+    var genIntro = (part === "intro" || part === "both");
+    var genOutro = (part === "outro" || part === "both");
 
-    var entry = library[idx];
+    if (genIntro) {
+      zoneIntro.classList.add("zone-generating");
+      zoneIntroEmpty.querySelector(".zone-sublabel").textContent = "generating...";
+      introTimer = startProgressTimer(introProgressEl);
+    }
+    if (genOutro) {
+      zoneOutro.classList.add("zone-generating");
+      zoneOutroEmpty.querySelector(".zone-sublabel").textContent = "generating...";
+      outroTimer = startProgressTimer(outroProgressEl);
+    }
+
+    if (part === "both") {
+      finishBtn.disabled = true;
+      finishBtn.classList.add("generating");
+    }
+
     var firstFile = entry.file;
     var reader = new FileReader();
     reader.onload = function (e) {
@@ -1569,27 +1669,7 @@ footer a:hover { text-decoration: underline; }
         binary += String.fromCharCode(bytes[i]);
       }
       var base64 = btoa(binary);
-
-      var analysis = {};
-      var a = entry.analysis;
-      if (a) {
-        if (a.songs && a.songs.length > 0) {
-          var sa = a.songs[0].songAssessment || {};
-          analysis = {
-            estimatedKey: sa.estimatedKey || "",
-            estimatedTempo: sa.estimatedTempo || "",
-            present: sa.present || [],
-            missing: sa.missing || []
-          };
-        } else if (a.songAssessment) {
-          analysis = {
-            estimatedKey: a.songAssessment.estimatedKey || "",
-            estimatedTempo: a.songAssessment.estimatedTempo || "",
-            present: a.songAssessment.present || [],
-            missing: a.songAssessment.missing || []
-          };
-        }
-      }
+      var analysis = getAnalysisForEntry(entry);
 
       fetch("/api/generate", {
         method: "POST",
@@ -1598,7 +1678,8 @@ footer a:hover { text-decoration: underline; }
           audioBase64: base64,
           audioType: firstFile.type || "audio/mpeg",
           analysis: analysis,
-          vibe: vibeInput.value.trim()
+          vibe: vibeInput.value.trim(),
+          part: part
         })
       })
         .then(function (res) {
@@ -1608,28 +1689,42 @@ footer a:hover { text-decoration: underline; }
           });
         })
         .then(function (data) {
+          if (genIntro) {
+            clearInterval(introTimer);
+            zoneIntro.classList.remove("zone-generating");
+          }
+          if (genOutro) {
+            clearInterval(outroTimer);
+            zoneOutro.classList.remove("zone-generating");
+          }
           finishBtn.disabled = false;
           finishBtn.classList.remove("generating");
-          zoneIntro.classList.remove("zone-generating");
-          zoneOutro.classList.remove("zone-generating");
           handleGenResults(data);
         })
         .catch(function (err) {
+          if (genIntro) {
+            clearInterval(introTimer);
+            zoneIntro.classList.remove("zone-generating");
+            zoneIntroEmpty.querySelector(".zone-sublabel").textContent = "click to generate";
+            introProgressEl.textContent = "";
+          }
+          if (genOutro) {
+            clearInterval(outroTimer);
+            zoneOutro.classList.remove("zone-generating");
+            zoneOutroEmpty.querySelector(".zone-sublabel").textContent = "click to generate";
+            outroProgressEl.textContent = "";
+          }
           finishBtn.disabled = false;
           finishBtn.classList.remove("generating");
-          zoneIntro.classList.remove("zone-generating");
-          zoneOutro.classList.remove("zone-generating");
-          zoneIntroEmpty.querySelector(".zone-sublabel").textContent = "awaiting generation";
-          zoneOutroEmpty.querySelector(".zone-sublabel").textContent = "awaiting generation";
           genError.textContent = err.message || "Generation failed. Please try again.";
           genError.classList.add("active");
         });
     };
     reader.onerror = function () {
+      if (genIntro) { clearInterval(introTimer); zoneIntro.classList.remove("zone-generating"); }
+      if (genOutro) { clearInterval(outroTimer); zoneOutro.classList.remove("zone-generating"); }
       finishBtn.disabled = false;
       finishBtn.classList.remove("generating");
-      zoneIntro.classList.remove("zone-generating");
-      zoneOutro.classList.remove("zone-generating");
       genError.textContent = "Failed to read audio file.";
       genError.classList.add("active");
     };

@@ -19,7 +19,7 @@ export async function onRequest(context) {
     return new Response(JSON.stringify({error: "Invalid JSON body"}), {status:400, headers:{"Content-Type":"application/json","Access-Control-Allow-Origin":"*"}});
   }
 
-  const { audioBase64, audioType, analysis, vibe } = body;
+  const { audioBase64, audioType, analysis, vibe, part } = body;
   if (!audioBase64) {
     return new Response(JSON.stringify({error: "No audio data provided"}), {status:400, headers:{"Content-Type":"application/json","Access-Control-Allow-Origin":"*"}});
   }
@@ -36,17 +36,28 @@ export async function onRequest(context) {
   const mimeType = audioType || "audio/mpeg";
   const audioDataUri = "data:" + mimeType + ";base64," + audioBase64;
 
-  try {
-    // Launch both intro and outro generations in parallel
-    const [introResult, outroResult] = await Promise.all([
-      runMusicGen(token, introPrompt, audioDataUri, 10),
-      runMusicGen(token, outroPrompt, audioDataUri, 10)
-    ]);
+  // Determine which parts to generate
+  const genIntro = !part || part === "intro" || part === "both";
+  const genOutro = !part || part === "outro" || part === "both";
 
-    return new Response(JSON.stringify({
-      intro: introResult,
-      outro: outroResult
-    }), {
+  try {
+    const result = {};
+    const promises = [];
+
+    if (genIntro) {
+      promises.push(
+        runMusicGen(token, introPrompt, audioDataUri, 10).then(function(r) { result.intro = r; })
+      );
+    }
+    if (genOutro) {
+      promises.push(
+        runMusicGen(token, outroPrompt, audioDataUri, 10).then(function(r) { result.outro = r; })
+      );
+    }
+
+    await Promise.all(promises);
+
+    return new Response(JSON.stringify(result), {
       headers: {"Content-Type":"application/json","Access-Control-Allow-Origin":"*"}
     });
   } catch (e) {
@@ -55,7 +66,6 @@ export async function onRequest(context) {
 }
 
 async function runMusicGen(token, prompt, audioDataUri, duration) {
-  // Create prediction
   const createResp = await fetch("https://api.replicate.com/v1/predictions", {
     method: "POST",
     headers: {
@@ -83,15 +93,12 @@ async function runMusicGen(token, prompt, audioDataUri, duration) {
 
   let prediction = await createResp.json();
 
-  // If using Prefer: wait, the prediction may already be complete
-  // Otherwise poll until done
-  const maxPolls = 120; // 10 minutes max
+  const maxPolls = 120;
   let polls = 0;
   while (prediction.status !== "succeeded" && prediction.status !== "failed" && prediction.status !== "canceled") {
     if (polls >= maxPolls) {
       throw new Error("Generation timed out after " + maxPolls + " polls");
     }
-    // Wait 5 seconds between polls
     await new Promise(function(resolve) { setTimeout(resolve, 5000); });
 
     const pollResp = await fetch("https://api.replicate.com/v1/predictions/" + prediction.id, {
