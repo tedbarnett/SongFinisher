@@ -680,13 +680,9 @@ footer a:hover { text-decoration: underline; }
   </div>
 
   <!-- Finish Song Row -->
-  <div style="display:flex;gap:12px;align-items:stretch;margin-bottom:24px;" id="finish-row">
-    <input class="vibe-input" id="vibe-input" type="text" style="flex:1;margin:0;"
+  <div style="margin-bottom:24px;">
+    <input class="vibe-input" id="vibe-input" type="text"
       placeholder='Describe the vibe: "dreamy indie", "upbeat funk", "dark electronic ballad"'>
-    <button class="finish-btn" id="finish-btn" style="margin:0;width:auto;white-space:nowrap;padding:14px 28px;">
-      <span class="btn-text">&#9889; Finish This Song</span>
-      <span class="btn-generating">Generating&hellip;</span>
-    </button>
   </div>
 
   <div class="error-msg" id="gen-error"></div>
@@ -742,7 +738,7 @@ footer a:hover { text-decoration: underline; }
   var vibeInput = document.getElementById("vibe-input");
   var workspace = document.getElementById("workspace");
   var workspaceSongName = document.getElementById("workspace-song-name");
-  var finishBtn = document.getElementById("finish-btn");
+  // finish button removed — generation triggered by clicking empty zones
   var genError = document.getElementById("gen-error");
 
   // Canvases
@@ -1009,7 +1005,7 @@ footer a:hover { text-decoration: underline; }
         showFinish = true;
       }
     }
-    finishBtn.style.display = showFinish ? "block" : "none";
+    
 
     // Bind events
     var playBtns = songListEl.querySelectorAll(".play-btn");
@@ -1627,13 +1623,6 @@ footer a:hover { text-decoration: underline; }
     doGeneratePart("outro");
   });
 
-  // Finish button generates both
-  finishBtn.addEventListener("click", function () {
-    if (selectedIdx < 0 || selectedIdx >= library.length) return;
-    if (library[selectedIdx].status !== "done") return;
-    doGeneratePart("both");
-  });
-
   function getAnalysisForEntry(entry) {
     var analysis = {};
     var a = entry.analysis;
@@ -1679,8 +1668,8 @@ footer a:hover { text-decoration: underline; }
     }
 
     if (part === "both") {
-      finishBtn.disabled = true;
-      finishBtn.classList.add("generating");
+      
+      
     }
 
     var firstFile = entry.file;
@@ -1721,8 +1710,8 @@ footer a:hover { text-decoration: underline; }
             clearInterval(outroTimer);
             zoneOutro.classList.remove("zone-generating");
           }
-          finishBtn.disabled = false;
-          finishBtn.classList.remove("generating");
+          
+          
           handleGenResults(data);
         })
         .catch(function (err) {
@@ -1738,8 +1727,8 @@ footer a:hover { text-decoration: underline; }
             zoneOutroEmpty.querySelector(".zone-sublabel").textContent = "click to generate";
             outroProgressEl.textContent = "";
           }
-          finishBtn.disabled = false;
-          finishBtn.classList.remove("generating");
+          
+          
           genError.textContent = err.message || "Generation failed. Please try again.";
           genError.classList.add("active");
         });
@@ -1747,8 +1736,8 @@ footer a:hover { text-decoration: underline; }
     reader.onerror = function () {
       if (genIntro) { clearInterval(introTimer); zoneIntro.classList.remove("zone-generating"); }
       if (genOutro) { clearInterval(outroTimer); zoneOutro.classList.remove("zone-generating"); }
-      finishBtn.disabled = false;
-      finishBtn.classList.remove("generating");
+      
+      
       genError.textContent = "Failed to read audio file.";
       genError.classList.add("active");
     };
