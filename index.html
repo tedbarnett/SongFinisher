@@ -561,27 +561,6 @@ footer a:hover { text-decoration: underline; }
     <p class="subtitle">Drop your rough tracks. AI figures out what's missing.</p>
   </header>
 
-  <!-- Library -->
-  <div class="card" id="library-card">
-    <div class="library-header">
-      <h2>&#9835; Library</h2>
-      <span class="song-count" id="song-count">0 tracks</span>
-    </div>
-    <div id="song-list"></div>
-
-    <div class="add-zone" id="add-zone">
-      <input type="file" id="file-input" multiple accept="audio/*,.mid,.midi">
-      <div class="add-zone-text"><span class="bolt">&#9889;</span>Drop more tracks here</div>
-      <div class="add-zone-hint">MP3, WAV, M4A, MIDI, AIFF, FLAC</div>
-    </div>
-
-    <div class="vibe-section">
-      <div class="vibe-label"><span class="bolt">&#9889;</span> Describe the vibe (optional)</div>
-      <input class="vibe-input" id="vibe-input" type="text"
-        placeholder='e.g. "dreamy indie", "upbeat funk", "dark electronic ballad"'>
-    </div>
-  </div>
-
   <!-- Waveform Workspace -->
   <div class="card workspace" id="workspace">
     <div class="workspace-header">
@@ -642,6 +621,27 @@ footer a:hover { text-decoration: underline; }
   </button>
 
   <div class="error-msg" id="gen-error"></div>
+
+  <!-- Library -->
+  <div class="card" id="library-card">
+    <div class="library-header">
+      <h2>&#9835; Library</h2>
+      <span class="song-count" id="song-count">0 tracks</span>
+    </div>
+    <div id="song-list"></div>
+
+    <div class="add-zone" id="add-zone">
+      <input type="file" id="file-input" multiple accept="audio/*,.mid,.midi">
+      <div class="add-zone-text"><span class="bolt">&#9889;</span>Drop more tracks here</div>
+      <div class="add-zone-hint">MP3, WAV, M4A, MIDI, AIFF, FLAC</div>
+    </div>
+
+    <div class="vibe-section">
+      <div class="vibe-label"><span class="bolt">&#9889;</span> Describe the vibe (optional)</div>
+      <input class="vibe-input" id="vibe-input" type="text"
+        placeholder='e.g. "dreamy indie", "upbeat funk", "dark electronic ballad"'>
+    </div>
+  </div>
 
   <div style="text-align:center;margin-top:40px;">
     <button class="feedback-btn" id="feedback-btn">Send Feedback</button>
