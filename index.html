@@ -115,24 +115,28 @@ h1 span {
 .song-card {
   display: flex; align-items: center; gap: 14px;
   padding: 14px 16px;
-  background: rgba(255,255,255,0.025);
-  border: 1px solid rgba(255,255,255,0.05);
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.03);
   border-radius: 12px;
   margin-bottom: 8px;
   transition: all 0.25s ease;
   animation: slideIn 0.3s ease;
   cursor: pointer;
+  opacity: 0.5;
 }
 
 .song-card:hover {
+  opacity: 0.75;
   border-color: rgba(255,107,53,0.2);
-  background: rgba(255,255,255,0.04);
+  background: rgba(255,255,255,0.03);
 }
 
 .song-card.selected {
-  border-color: rgba(255,107,53,0.4);
-  background: rgba(255,107,53,0.04);
-  box-shadow: 0 0 20px rgba(255,107,53,0.06);
+  opacity: 1;
+  border-color: rgba(255,107,53,0.5);
+  border-left: 3px solid #ff6b35;
+  background: rgba(255,107,53,0.06);
+  box-shadow: 0 0 24px rgba(255,107,53,0.08);
 }
 
 @keyframes slideIn {
