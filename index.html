@@ -539,6 +539,59 @@ footer a { color: #4f8cff; text-decoration: none; }
   }
 
   function renderResults(a) {
+    // Multi-song format: if songs array, render each song separately
+    if (a.songs && a.songs.length) {
+      var allHtml = "";
+      a.songs.forEach(function(song, idx) {
+        allHtml += '<div class="card" style="border-left:3px solid #4f8cff;margin-bottom:24px;">';
+        allHtml += '<div class="section-title"><span class="icon">&#127925;</span> Song ' + (idx+1) + ': ' + escapeHtml(song.filename || '') + '</div>';
+        
+        // File analysis
+        var fa = song.fileAnalysis || {};
+        allHtml += '<div class="analysis-item"><div class="a-name">' + escapeHtml(fa.instrument || '') + '</div><div class="a-instrument">' + escapeHtml(fa.role || '') + '</div><div class="a-role">' + escapeHtml(fa.notes || '') + '</div></div>';
+        
+        // Assessment
+        var sa = song.songAssessment || {};
+        allHtml += '<div class="assessment-grid" style="margin:12px 0;">';
+        allHtml += '<div class="assess-card"><div class="label">Key</div><div class="value">' + escapeHtml(sa.estimatedKey || '?') + '</div></div>';
+        allHtml += '<div class="assess-card"><div class="label">Tempo</div><div class="value">' + escapeHtml(sa.estimatedTempo || '?') + '</div></div>';
+        allHtml += '<div class="assess-card"><div class="label">Present</div><div class="value">';
+        (sa.present || []).forEach(function(p) { allHtml += '<span class="tag tag-present">' + escapeHtml(p) + '</span>'; });
+        allHtml += '</div></div>';
+        allHtml += '<div class="assess-card"><div class="label">Missing</div><div class="value">';
+        (sa.missing || []).forEach(function(m) { allHtml += '<span class="tag tag-missing">' + escapeHtml(m) + '</span>'; });
+        allHtml += '</div></div></div>';
+        
+        // Production plan
+        var pp = song.productionPlan || {};
+        (pp.sections || []).forEach(function(sec) {
+          allHtml += '<div class="plan-section"><div class="ps-header"><span class="ps-name">' + escapeHtml(sec.name || '') + '</span><span class="ps-bars">' + (sec.bars || '?') + ' bars</span></div>';
+          allHtml += '<div class="ps-desc">' + escapeHtml(sec.description || '') + '</div>';
+          if (sec.toGenerate) allHtml += '<div class="ps-gen"><span>Generate:</span> ' + escapeHtml(sec.toGenerate.join(', ')) + '</div>';
+          allHtml += '</div>';
+        });
+        if (pp.productionNotes) allHtml += '<div class="plan-notes"><strong>Production:</strong> ' + escapeHtml(pp.productionNotes) + '</div>';
+        
+        // Summary
+        if (song.summary) allHtml += '<div class="summary-text" style="margin-top:12px;">' + escapeHtml(song.summary) + '</div>';
+        
+        allHtml += '</div>';
+      });
+      
+      document.getElementById("analysis-grid").innerHTML = "";
+      document.getElementById("assessment-grid").innerHTML = "";
+      document.getElementById("plan-sections").innerHTML = "";
+      document.getElementById("plan-notes").innerHTML = "";
+      document.getElementById("summary-text").textContent = "";
+      document.getElementById("res-analysis").innerHTML = allHtml;
+      document.getElementById("res-assessment").style.display = "none";
+      document.getElementById("res-plan").style.display = "none";
+      document.getElementById("res-summary").style.display = "none";
+      resultsEl.style.display = "block";
+      resultsEl.classList.add("active");
+      resultsEl.scrollIntoView({ behavior: "smooth", block: "start" });
+      return;
+    }
     // If raw text, show as-is
     if (a.raw) {
       document.getElementById("analysis-grid").innerHTML =
