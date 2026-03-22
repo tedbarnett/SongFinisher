@@ -1218,22 +1218,105 @@ footer a:hover { text-decoration: underline; }
   function updatePlayhead(label, currentTime, duration) {
     if (!duration || duration === 0) return;
     var timeline = document.getElementById("waveform-timeline");
-    var timelineRect = timeline.getBoundingClientRect();
-
-    var zones = {
-      intro: zoneIntro.getBoundingClientRect(),
-      song: document.getElementById("zone-song").getBoundingClientRect(),
-      outro: zoneOutro.getBoundingClientRect()
-    };
-
-    var zone = zones[label];
+    var zone = document.getElementById("zone-" + (label === "song" ? "song" : label));
     if (!zone) return;
 
     var fraction = currentTime / duration;
-    var xInZone = zone.left - timelineRect.left + (fraction * zone.width);
+    var xInZone = zone.offsetLeft + (fraction * zone.offsetWidth);
     playhead.style.left = xInZone + "px";
     playhead.classList.add("active");
   }
+
+  // --- Scrubbing ---
+  var isScrubbing = false;
+
+  function scrubToPosition(e) {
+    var timeline = document.getElementById("waveform-timeline");
+    var rect = timeline.getBoundingClientRect();
+    var x = e.clientX - rect.left;
+
+    // Determine which zone was clicked
+    var zoneSongEl = document.getElementById("zone-song");
+    var introLeft = zoneIntro.offsetLeft;
+    var introRight = introLeft + zoneIntro.offsetWidth;
+    var songLeft = zoneSongEl.offsetLeft;
+    var songRight = songLeft + zoneSongEl.offsetWidth;
+    var outroLeft = zoneOutro.offsetLeft;
+    var outroRight = outroLeft + zoneOutro.offsetWidth;
+
+    var targetMode = null;
+    var fraction = 0;
+
+    if (x >= introLeft && x < introRight && introBuffer) {
+      targetMode = "intro";
+      fraction = (x - introLeft) / zoneIntro.offsetWidth;
+    } else if (x >= songLeft && x < songRight && songBuffer) {
+      targetMode = "song";
+      fraction = (x - songLeft) / zoneSongEl.offsetWidth;
+    } else if (x >= outroLeft && x <= outroRight && outroBuffer) {
+      targetMode = "outro";
+      fraction = (x - outroLeft) / zoneOutro.offsetWidth;
+    }
+
+    if (!targetMode) return;
+    fraction = Math.max(0, Math.min(1, fraction));
+
+    // If already playing the same zone, just seek
+    if (transportAudio && transportMode === targetMode && !transportAudio.paused) {
+      transportAudio.currentTime = fraction * transportAudio.duration;
+    } else {
+      // Start playback at this position
+      stopAllPlayback();
+      playTransport(targetMode);
+      // Wait for audio to load then seek
+      if (transportAudio) {
+        var seekFraction = fraction;
+        transportAudio.addEventListener("loadedmetadata", function () {
+          transportAudio.currentTime = seekFraction * transportAudio.duration;
+        });
+      }
+    }
+
+    // Update playhead position immediately
+    playhead.style.left = x + "px";
+    playhead.classList.add("active");
+  }
+
+  var timelineEl = document.getElementById("waveform-timeline");
+  timelineEl.style.cursor = "pointer";
+
+  timelineEl.addEventListener("mousedown", function (e) {
+    isScrubbing = true;
+    scrubToPosition(e);
+  });
+
+  document.addEventListener("mousemove", function (e) {
+    if (isScrubbing) {
+      scrubToPosition(e);
+    }
+  });
+
+  document.addEventListener("mouseup", function () {
+    isScrubbing = false;
+  });
+
+  // Touch support for mobile
+  timelineEl.addEventListener("touchstart", function (e) {
+    isScrubbing = true;
+    scrubToPosition(e.touches[0]);
+    e.preventDefault();
+  });
+
+  timelineEl.addEventListener("touchmove", function (e) {
+    if (isScrubbing) {
+      scrubToPosition(e.touches[0]);
+      e.preventDefault();
+    }
+  });
+
+  timelineEl.addEventListener("touchend", function () {
+    isScrubbing = false;
+  });
 
   tPlayAll.addEventListener("click", function () {
     if (transportMode === "all" && transportAudio && !transportAudio.paused) {
