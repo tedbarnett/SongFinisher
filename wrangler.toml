@@ -2,5 +2,9 @@ name = "song-finisher"
 compatibility_date = "2024-09-23"
 pages_build_output_dir = "."
 
+[[kv_namespaces]]
+binding = "SONG_KV"
+id = "cb132e16b88b4462ad082eeeb0afda9f"
+
 [vars]
 # ANTHROPIC_API_KEY set via: npx wrangler pages secret put ANTHROPIC_API_KEY

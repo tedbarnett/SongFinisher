@@ -360,6 +360,26 @@ footer a { color: #4f8cff; text-decoration: none; }
     </div>
   </div>
 
+  <div style="text-align:center;margin-top:40px;">
+    <button id="feedback-btn" style="background:none;border:1px solid rgba(79,140,255,0.3);color:#4f8cff;font-family:inherit;font-size:0.95rem;padding:10px 28px;border-radius:10px;cursor:pointer;transition:all 0.2s;">Send Feedback</button>
+    <a href="/feedback.html" style="display:block;margin-top:10px;color:#666;font-size:0.8rem;text-decoration:none;">View all feedback</a>
+  </div>
+
+  <!-- Feedback Modal -->
+  <div id="feedback-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100;justify-content:center;align-items:center;">
+    <div style="background:rgba(26,26,46,0.95);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,0.1);border-radius:16px;padding:32px;max-width:460px;width:90%;margin:auto;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+        <span style="font-size:1.2rem;font-weight:700;color:#fff;">Send Feedback</span>
+        <button id="feedback-close" style="background:none;border:none;color:#666;font-size:1.4rem;cursor:pointer;">&times;</button>
+      </div>
+      <input id="fb-name" type="text" placeholder="Name (optional)" style="width:100%;padding:10px 14px;margin-bottom:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;font-family:inherit;font-size:0.95rem;outline:none;">
+      <input id="fb-email" type="email" placeholder="Email (optional)" style="width:100%;padding:10px 14px;margin-bottom:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;font-family:inherit;font-size:0.95rem;outline:none;">
+      <textarea id="fb-text" placeholder="Your feedback..." rows="4" style="width:100%;padding:10px 14px;margin-bottom:16px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;font-family:inherit;font-size:0.95rem;outline:none;resize:vertical;"></textarea>
+      <button id="fb-submit" style="width:100%;padding:12px;background:linear-gradient(135deg,#4f8cff,#6c5ce7);border:none;border-radius:10px;color:#fff;font-family:inherit;font-size:1rem;font-weight:700;cursor:pointer;">Submit</button>
+      <div id="fb-status" style="text-align:center;margin-top:12px;font-size:0.9rem;color:#8a8aaf;"></div>
+    </div>
+  </div>
+
   <footer>
     Song Finisher &mdash; AI-powered music completion &mdash; <a href="https://gabrielbarnett.ai">Barnett Labs</a>
   </footer>
@@ -711,6 +731,73 @@ footer a { color: #4f8cff; text-decoration: none; }
     div.appendChild(document.createTextNode(str));
     return div.innerHTML;
   }
+})();
+</script>
+<script>
+(function () {
+  "use strict";
+  var overlay = document.getElementById("feedback-overlay");
+  var openBtn = document.getElementById("feedback-btn");
+  var closeBtn = document.getElementById("feedback-close");
+  var submitBtn = document.getElementById("fb-submit");
+  var statusEl = document.getElementById("fb-status");
+
+  openBtn.addEventListener("click", function () {
+    overlay.style.display = "block";
+  });
+
+  closeBtn.addEventListener("click", function () {
+    overlay.style.display = "none";
+    statusEl.textContent = "";
+  });
+
+  overlay.addEventListener("click", function (e) {
+    if (e.target === overlay) {
+      overlay.style.display = "none";
+      statusEl.textContent = "";
+    }
+  });
+
+  submitBtn.addEventListener("click", function () {
+    var feedback = document.getElementById("fb-text").value.trim();
+    if (!feedback) {
+      statusEl.style.color = "#ff5c5c";
+      statusEl.textContent = "Please enter your feedback.";
+      return;
+    }
+    submitBtn.disabled = true;
+    statusEl.style.color = "#8a8aaf";
+    statusEl.textContent = "Sending...";
+
+    fetch("/api/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: document.getElementById("fb-name").value.trim(),
+        email: document.getElementById("fb-email").value.trim(),
+        feedback: feedback
+      })
+    })
+      .then(function (res) { return res.json(); })
+      .then(function (data) {
+        submitBtn.disabled = false;
+        if (data.ok) {
+          statusEl.style.color = "#00c878";
+          statusEl.textContent = "Thank you! Feedback submitted.";
+          document.getElementById("fb-name").value = "";
+          document.getElementById("fb-email").value = "";
+          document.getElementById("fb-text").value = "";
+        } else {
+          statusEl.style.color = "#ff5c5c";
+          statusEl.textContent = data.error || "Something went wrong.";
+        }
+      })
+      .catch(function () {
+        submitBtn.disabled = false;
+        statusEl.style.color = "#ff5c5c";
+        statusEl.textContent = "Failed to send. Try again.";
+      });
+  });
 })();
 </script>
 </body>

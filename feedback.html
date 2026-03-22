@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feedback Log — Song Finisher</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Source Sans 3', sans-serif;
+  background: #1a1a2e;
+  color: #e0e0e0;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.bg-glow {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 20%, rgba(79,140,255,0.08) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 60% at 80% 80%, rgba(120,80,255,0.06) 0%, transparent 70%);
+}
+
+.container {
+  position: relative; z-index: 1;
+  max-width: 860px; margin: 0 auto; padding: 40px 20px 60px;
+}
+
+header { text-align: center; margin-bottom: 48px; }
+
+h1 {
+  font-size: 2.4rem; font-weight: 700; color: #fff;
+  margin-bottom: 8px; letter-spacing: -0.5px;
+}
+
+h1 span { color: #4f8cff; }
+
+.subtitle {
+  font-size: 1.1rem; font-weight: 300; color: #8a8aaf;
+}
+
+.back-link {
+  display: inline-block; margin-bottom: 24px;
+  color: #4f8cff; text-decoration: none; font-size: 0.95rem;
+}
+.back-link:hover { text-decoration: underline; }
+
+.card {
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 24px;
+}
+
+.entry {
+  padding: 16px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 10px;
+  margin-bottom: 12px;
+}
+
+.entry-header {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: 8px; flex-wrap: wrap; gap: 8px;
+}
+
+.entry-name { font-weight: 700; color: #fff; font-size: 1rem; }
+.entry-email { color: #4f8cff; font-size: 0.85rem; }
+.entry-time { color: #666; font-size: 0.8rem; }
+.entry-text { color: #ccc; font-size: 0.95rem; line-height: 1.6; }
+
+.empty-msg {
+  text-align: center; color: #666; padding: 40px 20px; font-size: 1.1rem;
+}
+
+.loading-msg {
+  text-align: center; color: #8a8aaf; padding: 40px 20px;
+}
+
+footer {
+  text-align: center; margin-top: 48px; padding-top: 24px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  color: #555; font-size: 0.8rem;
+}
+footer a { color: #4f8cff; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="bg-glow"></div>
+<div class="container">
+
+  <header>
+    <h1>Song <span>Finisher</span></h1>
+    <p class="subtitle">Feedback Log</p>
+  </header>
+
+  <a class="back-link" href="/">&larr; Back to Song Finisher</a>
+
+  <div class="card">
+    <div id="feedback-list">
+      <div class="loading-msg">Loading feedback...</div>
+    </div>
+  </div>
+
+  <footer>
+    Song Finisher &mdash; AI-powered music completion &mdash; <a href="https://gabrielbarnett.ai">Barnett Labs</a>
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var listEl = document.getElementById("feedback-list");
+
+  fetch("/api/feedback")
+    .then(function (res) { return res.json(); })
+    .then(function (data) {
+      var entries = data.entries || [];
+      if (entries.length === 0) {
+        listEl.innerHTML = '<div class="empty-msg">No feedback yet.</div>';
+        return;
+      }
+      var html = "";
+      for (var i = 0; i < entries.length; i++) {
+        var e = entries[i];
+        var date = new Date(e.timestamp).toLocaleString();
+        html += '<div class="entry">';
+        html += '<div class="entry-header">';
+        html += '<span class="entry-name">' + escapeHtml(e.name || "Anonymous") + '</span>';
+        if (e.email) html += '<span class="entry-email">' + escapeHtml(e.email) + '</span>';
+        html += '<span class="entry-time">' + escapeHtml(date) + '</span>';
+        html += '</div>';
+        html += '<div class="entry-text">' + escapeHtml(e.feedback) + '</div>';
+        html += '</div>';
+      }
+      listEl.innerHTML = html;
+    })
+    .catch(function () {
+      listEl.innerHTML = '<div class="empty-msg">Failed to load feedback.</div>';
+    });
+
+  function escapeHtml(str) {
+    var div = document.createElement("div");
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+  }
+})();
+</script>
+</body>
+</html>
