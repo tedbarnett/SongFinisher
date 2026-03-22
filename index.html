@@ -759,7 +759,7 @@ footer a:hover { text-decoration: underline; }
           if (sa.estimatedKey) parts.push(sa.estimatedKey);
           if (sa.estimatedTempo) parts.push(sa.estimatedTempo);
           if (sa.present && sa.present.length) parts.push(sa.present.join(', '));
-          if (parts.length) html += '<div class="song-stats">' + escapeHtml(parts.join(' &middot; ')) + '</div>';
+          if (parts.length) html += '<div class="song-stats">' + escapeHtml(parts.join(' \u00B7 ')) + '</div>';
         }
       }
 
