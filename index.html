@@ -665,8 +665,14 @@ footer a:hover { text-decoration: underline; }
 
     <!-- Transport -->
     <div class="transport" id="transport">
-      <button class="transport-btn" id="t-play" title="Play / Pause">
+      <button class="transport-btn" id="t-rewind" title="Rewind">
+        <span class="transport-btn-icon">&#9198;</span>
+      </button>
+      <button class="transport-btn" id="t-play" title="Play">
         <span class="transport-btn-icon" id="t-play-icon">&#9654;</span>
+      </button>
+      <button class="transport-btn" id="t-pause" title="Pause">
+        <span class="transport-btn-icon">&#9646;&#9646;</span>
       </button>
       <span class="transport-time" id="transport-time">0:00</span>
     </div>
@@ -1308,17 +1314,26 @@ footer a:hover { text-decoration: underline; }
     }
   }
 
+  var tRewind = document.getElementById("t-rewind");
+  var tPause = document.getElementById("t-pause");
+
   tPlay.addEventListener("click", function () {
-    if (transportAudio && !transportAudio.paused) {
-      // Currently playing — pause
-      pauseTransport();
-    } else if (transportAudio && transportAudio.paused) {
-      // Paused — resume
+    if (transportAudio && transportAudio.paused) {
       resumeTransport();
-    } else {
-      // Not playing — start from playhead
+    } else if (!transportAudio) {
       playFromPlayhead();
     }
+  });
+
+  tPause.addEventListener("click", function () {
+    if (transportAudio && !transportAudio.paused) {
+      pauseTransport();
+    }
+  });
+
+  tRewind.addEventListener("click", function () {
+    stopTransportPlayback();
+    resetPlayheadToStart();
   });
 
   function updatePlayhead(label, currentTime, duration) {
