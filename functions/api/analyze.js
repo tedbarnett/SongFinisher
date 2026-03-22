@@ -11,6 +11,23 @@ export async function onRequest(context) {
   var files = body.files || [];
   var description = body.description || "";
 
+  // Build a cache key from file metadata (name + size + duration)
+  var cacheKey = "analysis:" + files.map(function(f) {
+    return f.name + ":" + f.size + ":" + (f.duration ? f.duration.toFixed(1) : "0");
+  }).join("|");
+
+  // Check KV cache
+  if (env.SONG_KV) {
+    try {
+      var cached = await env.SONG_KV.get(cacheKey);
+      if (cached) {
+        return new Response(JSON.stringify({ analysis: JSON.parse(cached), cached: true }), {
+          headers: {"Content-Type":"application/json","Access-Control-Allow-Origin":"*"}
+        });
+      }
+    } catch(e) { /* cache miss, continue */ }
+  }
+
   var fileList = files.map(function(f, i) {
     return (i+1) + ". " + f.name + " (" + (f.duration ? f.duration.toFixed(1) + "s" : "?") + ", " + (f.size/1024).toFixed(0) + "KB)";
   }).join("\n");
@@ -43,6 +60,13 @@ export async function onRequest(context) {
     var text = data.content && data.content[0] ? data.content[0].text : "";
     var jsonMatch = text.match(/\{[\s\S]*\}/);
     var analysis = jsonMatch ? JSON.parse(jsonMatch[0]) : { raw: text };
+
+    // Cache in KV (30 days TTL)
+    if (env.SONG_KV && jsonMatch) {
+      try {
+        await env.SONG_KV.put(cacheKey, JSON.stringify(analysis), { expirationTtl: 2592000 });
+      } catch(e) { /* cache write failed, non-fatal */ }
+    }
 
     return new Response(JSON.stringify({ analysis: analysis }), {
       headers: {"Content-Type":"application/json","Access-Control-Allow-Origin":"*"}
